@@ -315,6 +315,90 @@ input,select,textarea{font-family:inherit;outline:none}
   <div id="search-results"></div>
 </div>
 
+<div id="view-help" class="view">
+  <div style="padding:16px">
+    <h2 style="margin-bottom:20px;color:var(--accent)">📚 操作説明</h2>
+    
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">🏠 ホーム画面</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>📊 <strong>統計表示</strong>：今日の工程数・稼働人数・未割当人数を表示</li>
+        <li>📋 <strong>今日の工程</strong>：今日の全工程を一覧表示</li>
+        <li>📋 <strong>明日の工程</strong>：明日の全工程を一覧表示</li>
+        <li>工程をタップすると日ビューに移動</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">📅 カレンダー</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>🗓️ <strong>月表示</strong>：工程をカレンダー形式で確認</li>
+        <li>🔄 <strong>ドラッグ移動</strong>：工程カードをドラッグして日付を変更</li>
+        <li>📋 <strong>ドラッグコピー</strong>：Ctrlキー（MacはCmdキー）を押しながらドラッグでコピー</li>
+        <li>🌧️ <strong>雨天延期</strong>：選択日または全工程を翌営業日に延期</li>
+        <li>＋ボタンで新規工程追加</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">🏗️ 現場管理</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>📍 <strong>現場一覧</strong>：登録済みの現場を表示</li>
+        <li>＋ボタンで新規現場追加</li>
+        <li>現場カードをタップで詳細表示</li>
+        <li>📁 <strong>現場資料</strong>：図面・写真・安全書類・見積・その他フォルダー</li>
+        <li>フォルダーボタンをクリックしてファイルをアップロード</li>
+        <li>📥ダウンロード・🗑️削除が可能</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">👥 メンバー管理</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>👤 <strong>メンバー一覧</strong>：作業メンバーの管理</li>
+        <li>＋ボタンで新規メンバー追加</li>
+        <li>🚛 <strong>トラック管理</strong>：使用トラックの管理</li>
+        <li>名前をクリックして編集</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">🔍 検索</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>現場名・元請・場所・メンバー名で検索</li>
+        <li>過去1年分の工程データを検索</li>
+        <li>検索結果から日ビューに移動可能</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">💡 便利機能</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>📱 <strong>PWA対応</strong>：ホーム画面に追加してアプリのように使用</li>
+        <li>💾 <strong>自動保存</strong>：データはブラウザに自動保存</li>
+        <li>🖨️ <strong>印刷対応</strong>：日ビュー・週間ビューを印刷可能</li>
+        <li>📍 <strong>地図連携</strong>：現場住所からGoogleマップを開く</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">🎯 ショートカット</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>Enterキー：検索実行</li>
+        <li>Ctrl+ドラッグ：工程コピー（Windows）</li>
+        <li>Cmd+ドラッグ：工程コピー（Mac）</li>
+      </ul>
+    </div>
+
+    <div style="padding:16px;background:#f8f9fa;border-radius:8px;margin-top:24px">
+      <p style="margin:0;color:var(--sub);font-size:14px;text-align:center">
+        📞 ご質問・ご要望は開発者まで<br>
+        <strong>西島工業 工程管理システム</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
 <!-- FAB -->
 <button class="fab" id="fab" onclick="onFab()">＋</button>
 
@@ -334,6 +418,9 @@ input,select,textarea{font-family:inherit;outline:none}
   </button>
   <button class="nav-btn" onclick="showView('search')" data-view="search">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>検索
+  </button>
+  <button class="nav-btn" onclick="showView('help')" data-view="help">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v4z"/></svg>ヘルプ
   </button>
 </nav>
 
@@ -485,6 +572,8 @@ function showView(v){
   if(v==='cal')renderCal();
   if(v==='sites')showSiteList();
   if(v==='members')renderMembers();
+  if(v==='search'){} // 検索ビューは初期化不要
+  if(v==='help'){} // ヘルプビューは静的コンテンツ
 }
 function onFab(){
   if(state.view==='cal')openAddSchedule();
