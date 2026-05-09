@@ -1,4 +1,4 @@
-const CACHE = 'nishijima-height-v2';
+const CACHE = 'nishijima-height-v3';
 const ASSETS = ["/height_meter.html/","/height_meter.html/index.html","/height_meter.html/manifest.json"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
