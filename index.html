@@ -11,417 +11,454 @@
       background: #1a1a2e;
       color: #fff;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     header {
       background: #16213e;
-      width: 100%;
       padding: 14px;
       text-align: center;
       font-size: 17px;
       font-weight: bold;
-      border-bottom: 2px solid #0f3460;
-      z-index: 10;
+      border-bottom: 2px solid #e94560;
     }
-    .camera-wrap {
-      position: relative;
-      width: 100%;
-      max-width: 480px;
-      background: #000;
-      aspect-ratio: 4/3;
+    .step {
+      background: #16213e;
+      margin: 12px;
+      border-radius: 12px;
+      padding: 16px;
     }
-    #video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .crosshair {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-    }
-    .crosshair::before,
-    .crosshair::after {
-      content: '';
-      position: absolute;
-      background: rgba(233,69,96,0.8);
-    }
-    .crosshair::before {
-      width: 100%; height: 2px;
-      top: 50%; left: 0;
-      transform: translateY(-50%);
-    }
-    .crosshair::after {
-      width: 2px; height: 100%;
-      left: 50%; top: 0;
-      transform: translateX(-50%);
-    }
-    .crosshair-center {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 20px; height: 20px;
-      border: 2px solid #e94560;
-      border-radius: 50%;
-    }
-    .camera-angle {
-      position: absolute;
-      bottom: 8px; left: 0; right: 0;
-      text-align: center;
-      font-size: 26px;
+    .step-title {
+      font-size: 15px;
       font-weight: bold;
       color: #e94560;
-      text-shadow: 0 0 8px rgba(0,0,0,0.9);
+      margin-bottom: 12px;
     }
-    .camera-label {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      text-align: center;
-      font-size: 13px;
+    .step-title span {
+      background: #e94560;
       color: #fff;
-      background: rgba(0,0,0,0.5);
-      padding: 6px;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-right: 8px;
     }
-    .no-camera {
+
+    /* 写真エリア */
+    .photo-area {
+      position: relative;
       width: 100%;
-      aspect-ratio: 4/3;
-      background: #0f3460;
+      background: #0a0a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      min-height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+    }
+    .photo-area img {
+      width: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .photo-area .placeholder {
       color: #aac4e0;
+      font-size: 13px;
       text-align: center;
       padding: 20px;
     }
-    .main {
+
+    /* 計測ライン */
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      touch-action: none;
+    }
+
+    /* ボタン */
+    .btn {
       width: 100%;
-      max-width: 480px;
-      padding: 16px;
-      flex: 1;
-    }
-    .input-section {
-      background: #16213e;
-      border-radius: 12px;
       padding: 14px;
-      margin-bottom: 14px;
-    }
-    .input-section label {
-      display: block;
-      font-size: 13px;
-      color: #aac4e0;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
       margin-bottom: 8px;
     }
+    .btn-red { background: #e94560; color: #fff; }
+    .btn-blue { background: #0f3460; color: #fff; border: 2px solid #e94560; }
+    .btn-purple { background: #533483; color: #fff; }
+    .btn-gray { background: transparent; color: #aac4e0; border: 1px solid #333; }
+    .btn:disabled { opacity: 0.4; }
+
+    /* 入力 */
     .input-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
+    .input-row label { font-size: 13px; color: #aac4e0; white-space: nowrap; }
     .input-row input {
       flex: 1;
       background: #0f3460;
       border: 1px solid #e94560;
       border-radius: 8px;
       color: #fff;
-      font-size: 22px;
-      padding: 10px;
+      font-size: 18px;
+      padding: 8px;
       text-align: center;
       outline: none;
     }
-    .input-row span { color: #aac4e0; font-size: 14px; }
-    .angle-display {
-      background: #16213e;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-around;
+    .input-row span { font-size: 13px; color: #aac4e0; }
+
+    /* ピクセル表示 */
+    .px-display {
+      background: #0f3460;
+      border-radius: 8px;
+      padding: 10px;
       text-align: center;
-    }
-    .angle-item label {
-      display: block;
-      font-size: 11px;
+      margin-bottom: 8px;
+      font-size: 13px;
       color: #aac4e0;
-      margin-bottom: 4px;
     }
-    .angle-item .val {
-      font-size: 20px;
-      font-weight: bold;
-      color: #e94560;
-    }
-    .angle-item .unit { font-size: 11px; color: #aac4e0; }
-    .measure-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
+    .px-display strong { color: #e94560; font-size: 18px; }
+
+    /* 結果 */
+    .result-box {
+      background: #0f3460;
       border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+      padding: 20px;
+      text-align: center;
+      display: none;
+      margin: 12px;
     }
-    .btn-start { background: #e94560; color: #fff; }
-    .btn-base { background: #0f3460; color: #fff; border: 2px solid #e94560; }
-    .btn-top { background: #e94560; color: #fff; }
-    .btn-calc { background: #533483; color: #fff; }
-    .btn-reset { background: transparent; color: #aac4e0; border: 1px solid #333; margin-top: 4px; }
-    .btn:disabled { opacity: 0.4; }
+    .result-box.show { display: block; }
+    .result-box .label { font-size: 13px; color: #aac4e0; margin-bottom: 6px; }
+    .result-box .height { font-size: 56px; font-weight: bold; color: #e94560; line-height: 1; }
+    .result-box .unit { font-size: 20px; color: #aac4e0; }
+    .result-box .floors { margin-top: 10px; font-size: 15px; color: #aac4e0; }
+    .result-box .note { margin-top: 10px; font-size: 11px; color: #555; }
+
     .status {
       background: #0f3460;
       border-radius: 8px;
       padding: 10px;
       font-size: 13px;
       color: #aac4e0;
-      margin-bottom: 12px;
       text-align: center;
+      margin-bottom: 8px;
     }
-    .result-section {
-      background: #16213e;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 14px;
-      display: none;
-    }
-    .result-section.show { display: block; }
-    .result-label { font-size: 13px; color: #aac4e0; margin-bottom: 6px; }
-    .result-height { font-size: 52px; font-weight: bold; color: #e94560; line-height: 1; }
-    .result-unit { font-size: 18px; color: #aac4e0; }
-    .result-floors { margin-top: 10px; font-size: 15px; color: #aac4e0; }
-    .result-note { margin-top: 10px; font-size: 11px; color: #555; }
-    .step-badge {
-      display: inline-block;
-      background: #e94560;
-      color: #fff;
-      border-radius: 50%;
-      width: 22px; height: 22px;
-      line-height: 22px;
-      text-align: center;
-      font-size: 12px;
-      margin-right: 6px;
-    }
+
+    .hint { font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.5; }
   </style>
 </head>
 <body>
 
 <header>📐 建物高さ測定ツール</header>
 
-<div class="camera-wrap" id="cameraWrap">
-  <div class="no-camera" id="noCameraMsg">📷 下の「カメラ＆センサーを起動」を押してください</div>
-  <video id="video" autoplay playsinline style="display:none;"></video>
-  <div class="crosshair" id="crosshair" style="display:none;">
-    <div class="crosshair-center"></div>
+<!-- STEP 1: メジャー写真 -->
+<div class="step">
+  <div class="step-title"><span>1</span>メジャー写真（GL付近・500mm離れて撮影）</div>
+  <p class="hint">地面にメジャーを置き、500mmの距離から撮影してください。<br>撮影後、メジャーの0mmと1000mmの位置をタップして指定します。</p>
+
+  <div class="photo-area" id="scalePhotoArea">
+    <div class="placeholder">📷 写真を選択してください</div>
+    <img id="scaleImg" style="display:none;" />
+    <canvas id="scaleCanvas"></canvas>
   </div>
-  <div class="camera-label" id="cameraLabel" style="display:none;">照準を合わせてボタンを押す</div>
-  <div class="camera-angle" id="cameraAngle" style="display:none;">-- °</div>
+
+  <input type="file" id="scaleFile" accept="image/*" capture="environment" style="display:none;" onchange="loadScalePhoto(event)">
+  <button class="btn btn-red" onclick="document.getElementById('scaleFile').click()">📷 メジャー写真を撮影・選択</button>
+
+  <div class="status" id="scaleStatus">写真を撮影してください</div>
+
+  <div class="px-display" id="scalePxDisplay">
+    メジャー1000mmのピクセル数：<strong id="scalePx">未測定</strong>
+  </div>
+  <p class="hint">※写真上でメジャーの「0mm地点」と「1000mm地点」を順番にタップしてください</p>
+  <button class="btn btn-gray" onclick="resetScaleMeasure()">↩ メジャー測定リセット</button>
 </div>
 
-<div class="main">
+<!-- STEP 2: 建物写真 -->
+<div class="step">
+  <div class="step-title"><span>2</span>建物写真（5000mm離れて全体を撮影）</div>
+  <p class="hint">建物から5000mm（5m）離れて全体が入るように撮影してください。<br>撮影後、建物のGL（地面）と最高部をタップして指定します。</p>
 
-  <div class="input-section">
-    <label><span class="step-badge">1</span>建物までの距離（目測でOK）</label>
-    <div class="input-row">
-      <input type="number" id="distance" placeholder="例：10" min="1" max="500">
-      <span>メートル</span>
-    </div>
+  <div class="input-row">
+    <label>撮影距離</label>
+    <input type="number" id="buildingDist" value="5000" min="100">
+    <span>mm</span>
   </div>
 
-  <div class="angle-display">
-    <div class="angle-item">
-      <label>足元の角度</label>
-      <div class="val" id="baseAngle">--</div>
-      <div class="unit">度</div>
-    </div>
-    <div class="angle-item">
-      <label>頂上の角度</label>
-      <div class="val" id="topAngle">--</div>
-      <div class="unit">度</div>
-    </div>
-    <div class="angle-item">
-      <label>現在の角度</label>
-      <div class="val" id="currentAngle">--</div>
-      <div class="unit">度</div>
-    </div>
+  <div class="photo-area" id="buildingPhotoArea">
+    <div class="placeholder">📷 写真を選択してください</div>
+    <img id="buildingImg" style="display:none;" />
+    <canvas id="buildingCanvas"></canvas>
   </div>
 
-  <div class="status" id="status">まず「カメラ＆センサーを起動」を押してください。</div>
+  <input type="file" id="buildingFile" accept="image/*" capture="environment" style="display:none;" onchange="loadBuildingPhoto(event)">
+  <button class="btn btn-blue" onclick="document.getElementById('buildingFile').click()">📷 建物写真を撮影・選択</button>
 
-  <div class="measure-section">
-    <button class="btn btn-start" id="btnSensor" onclick="startSensor()">
-      🔓 ① センサーを許可する
-    </button>
-    <button class="btn" id="btnCamera" onclick="startCamera()" style="background:#0f3460;color:#fff;border:2px solid #e94560;">
-      📷 ② カメラを起動する
-    </button>
-    <button class="btn btn-base" id="btnBase" onclick="measureBase()" disabled>
-      <span class="step-badge">2</span>照準を足元に合わせて測定
-    </button>
-    <button class="btn btn-top" id="btnTop" onclick="measureTop()" disabled>
-      <span class="step-badge">3</span>照準を頂上に合わせて測定
-    </button>
-    <button class="btn btn-calc" id="btnCalc" onclick="calculate()" disabled>
-      <span class="step-badge">4</span>高さを計算する
-    </button>
+  <div class="status" id="buildingStatus">写真を撮影してください</div>
+
+  <div class="px-display" id="buildingPxDisplay">
+    建物のピクセル数：<strong id="buildingPx">未測定</strong>
   </div>
+  <p class="hint">※写真上で建物の「GL（地面）」と「最高部」を順番にタップしてください</p>
+  <button class="btn btn-gray" onclick="resetBuildingMeasure()">↩ 建物測定リセット</button>
+</div>
 
-  <div class="result-section" id="result">
-    <div class="result-label">推定建物高さ</div>
-    <div>
-      <span class="result-height" id="resultHeight">--</span>
-      <span class="result-unit"> m</span>
-    </div>
-    <div class="result-floors" id="resultFloors"></div>
-    <div class="result-note">※目測距離により誤差があります。参考値としてご使用ください。</div>
+<!-- STEP 3: 計算 -->
+<div class="step">
+  <div class="step-title"><span>3</span>高さを計算</div>
+  <button class="btn btn-purple" id="btnCalc" onclick="calculate()">📐 高さを計算する</button>
+</div>
+
+<!-- 結果 -->
+<div class="result-box" id="result">
+  <div class="label">推定建物高さ</div>
+  <div>
+    <span class="height" id="resultHeight">--</span>
+    <span class="unit"> mm</span>
   </div>
+  <div class="floors" id="resultFloors"></div>
+  <div class="note">※距離の目測誤差により実際と異なる場合があります</div>
+</div>
 
-  <button class="btn btn-reset" onclick="resetAll()">🔄 リセット</button>
-
+<div style="padding:12px;">
+  <button class="btn btn-gray" onclick="resetAll()">🔄 全リセット</button>
 </div>
 
 <script>
-  let baseAngleDeg = null;
-  let topAngleDeg = null;
-  let currentAngleDeg = 0;
-  let sensorActive = false;
+  // メジャー写真の計測
+  let scalePts = [];
+  let scalePxPerMm = null;
 
-  function updateStatus(msg) {
-    document.getElementById('status').textContent = msg;
+  // 建物写真の計測
+  let buildingPts = [];
+  let buildingPx = null;
+
+  // --- メジャー写真 ---
+  function loadScalePhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = document.getElementById('scaleImg');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      document.querySelector('#scalePhotoArea .placeholder').style.display = 'none';
+      img.onload = function() {
+        setupCanvas('scaleCanvas', 'scalePhotoArea', img, 'scale');
+        document.getElementById('scaleStatus').textContent = '0mmの位置をタップしてください';
+        scalePts = [];
+        scalePxPerMm = null;
+        document.getElementById('scalePx').textContent = '未測定';
+      };
+    };
+    reader.readAsDataURL(file);
   }
 
-  // センサー許可（iOSはawaitなしで直接呼ぶ）
-  function startSensor() {
-    if (typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(function(res) {
-        if (res === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation);
-          sensorActive = true;
-          document.getElementById('btnSensor').textContent = '✅ センサーOK';
-          document.getElementById('btnSensor').disabled = true;
-          updateStatus('センサーOK！次に②カメラを起動してください。');
-        } else {
-          updateStatus('⚠️ センサーが拒否されました。設定から許可してください。');
-        }
-      }).catch(function(e) {
-        updateStatus('⚠️ センサーエラー: ' + e.message);
-      });
-    } else if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation);
-      sensorActive = true;
-      document.getElementById('btnSensor').textContent = '✅ センサーOK';
-      document.getElementById('btnSensor').disabled = true;
-      updateStatus('センサーOK！次に②カメラを起動してください。');
-    } else {
-      sensorActive = false;
-      document.getElementById('btnSensor').textContent = '⚠️ センサーなし';
-      document.getElementById('btnSensor').disabled = true;
-      updateStatus('センサーなし。次に②カメラを起動してください。');
+  function setupCanvas(canvasId, areaId, img, mode) {
+    const area = document.getElementById(areaId);
+    const canvas = document.getElementById(canvasId);
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.style.display = 'block';
+
+    canvas.ontouchstart = function(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (touch.clientX - rect.left) * scaleX;
+      const y = (touch.clientY - rect.top) * scaleY;
+      if (mode === 'scale') handleScaleTap(x, y, canvas);
+      else handleBuildingTap(x, y, canvas);
+    };
+    canvas.onclick = function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      if (mode === 'scale') handleScaleTap(x, y, canvas);
+      else handleBuildingTap(x, y, canvas);
+    };
+  }
+
+  function handleScaleTap(x, y, canvas) {
+    if (scalePts.length >= 2) return;
+    scalePts.push({x, y});
+    drawScaleCanvas(canvas);
+
+    if (scalePts.length === 1) {
+      document.getElementById('scaleStatus').textContent = '次に1000mmの位置をタップしてください';
+    } else if (scalePts.length === 2) {
+      // ピクセル距離を計算
+      const dx = scalePts[1].x - scalePts[0].x;
+      const dy = scalePts[1].y - scalePts[0].y;
+      const px = Math.sqrt(dx*dx + dy*dy);
+      scalePxPerMm = px / 1000;
+      document.getElementById('scalePx').textContent = Math.round(px) + ' px';
+      document.getElementById('scaleStatus').textContent = '✅ メジャー測定完了！';
     }
   }
 
-  // カメラ起動
-  async function startCamera() {
-    document.getElementById('btnCamera').disabled = true;
-    document.getElementById('btnCamera').textContent = '起動中...';
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
-        audio: false
-      });
-      const video = document.getElementById('video');
-      video.srcObject = stream;
-      video.style.display = 'block';
-      document.getElementById('noCameraMsg').style.display = 'none';
-      document.getElementById('crosshair').style.display = 'block';
-      document.getElementById('cameraLabel').style.display = 'block';
-      document.getElementById('cameraAngle').style.display = 'block';
-      document.getElementById('btnCamera').textContent = '✅ カメラOK';
-    } catch(e) {
-      document.getElementById('noCameraMsg').textContent = '⚠️ カメラなし。センサーのみで動作します。';
-      document.getElementById('btnCamera').textContent = '⚠️ カメラなし';
+  function drawScaleCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    scalePts.forEach(function(pt, i) {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 20, 0, Math.PI*2);
+      ctx.fillStyle = i === 0 ? 'rgba(0,200,100,0.8)' : 'rgba(233,69,96,0.8)';
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(i === 0 ? '0' : '1000', pt.x, pt.y);
+    });
+    if (scalePts.length === 2) {
+      ctx.beginPath();
+      ctx.moveTo(scalePts[0].x, scalePts[0].y);
+      ctx.lineTo(scalePts[1].x, scalePts[1].y);
+      ctx.strokeStyle = 'rgba(233,69,96,0.8)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
     }
-    document.getElementById('btnBase').disabled = false;
-    updateStatus('起動完了！照準を建物の足元に合わせて「足元測定」を押してください。');
   }
 
-  function handleOrientation(event) {
-    let beta = event.beta;
-    if (beta === null) return;
-    currentAngleDeg = -beta;
-    document.getElementById('currentAngle').textContent = currentAngleDeg.toFixed(1);
-    document.getElementById('cameraAngle').textContent = currentAngleDeg.toFixed(1) + '°';
+  function resetScaleMeasure() {
+    scalePts = [];
+    scalePxPerMm = null;
+    document.getElementById('scalePx').textContent = '未測定';
+    document.getElementById('scaleStatus').textContent = '0mmの位置をタップしてください';
+    const canvas = document.getElementById('scaleCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  function measureBase() {
-    if (!sensorActive) {
-      let val = prompt('足元の角度を入力（例：-5）', '-5');
-      if (val === null) return;
-      baseAngleDeg = parseFloat(val);
-    } else {
-      baseAngleDeg = currentAngleDeg;
+  // --- 建物写真 ---
+  function loadBuildingPhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = document.getElementById('buildingImg');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      document.querySelector('#buildingPhotoArea .placeholder').style.display = 'none';
+      img.onload = function() {
+        setupCanvas('buildingCanvas', 'buildingPhotoArea', img, 'building');
+        document.getElementById('buildingStatus').textContent = 'GLの位置をタップしてください';
+        buildingPts = [];
+        buildingPx = null;
+        document.getElementById('buildingPx').textContent = '未測定';
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleBuildingTap(x, y, canvas) {
+    if (buildingPts.length >= 2) return;
+    buildingPts.push({x, y});
+    drawBuildingCanvas(canvas);
+
+    if (buildingPts.length === 1) {
+      document.getElementById('buildingStatus').textContent = '次に建物の最高部をタップしてください';
+    } else if (buildingPts.length === 2) {
+      const dx = buildingPts[1].x - buildingPts[0].x;
+      const dy = buildingPts[1].y - buildingPts[0].y;
+      buildingPx = Math.sqrt(dx*dx + dy*dy);
+      document.getElementById('buildingPx').textContent = Math.round(buildingPx) + ' px';
+      document.getElementById('buildingStatus').textContent = '✅ 建物測定完了！';
     }
-    document.getElementById('baseAngle').textContent = baseAngleDeg.toFixed(1);
-    document.getElementById('btnTop').disabled = false;
-    updateStatus('✅ 足元を記録！次に照準を屋上・頂上に合わせて「頂上測定」を押してください。');
   }
 
-  function measureTop() {
-    if (!sensorActive) {
-      let val = prompt('頂上の角度を入力（例：30）', '30');
-      if (val === null) return;
-      topAngleDeg = parseFloat(val);
-    } else {
-      topAngleDeg = currentAngleDeg;
+  function drawBuildingCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    buildingPts.forEach(function(pt, i) {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 20, 0, Math.PI*2);
+      ctx.fillStyle = i === 0 ? 'rgba(0,200,100,0.8)' : 'rgba(233,69,96,0.8)';
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(i === 0 ? 'GL' : 'TOP', pt.x, pt.y);
+    });
+    if (buildingPts.length === 2) {
+      ctx.beginPath();
+      ctx.moveTo(buildingPts[0].x, buildingPts[0].y);
+      ctx.lineTo(buildingPts[1].x, buildingPts[1].y);
+      ctx.strokeStyle = 'rgba(233,69,96,0.8)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
     }
-    document.getElementById('topAngle').textContent = topAngleDeg.toFixed(1);
-    document.getElementById('btnCalc').disabled = false;
-    updateStatus('✅ 頂上を記録！「高さを計算」を押してください。');
   }
 
+  function resetBuildingMeasure() {
+    buildingPts = [];
+    buildingPx = null;
+    document.getElementById('buildingPx').textContent = '未測定';
+    document.getElementById('buildingStatus').textContent = 'GLの位置をタップしてください';
+    const canvas = document.getElementById('buildingCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // --- 計算 ---
   function calculate() {
-    const distance = parseFloat(document.getElementById('distance').value);
-    if (!distance || distance <= 0) {
-      alert('建物までの距離を入力してください');
+    if (!scalePxPerMm) {
+      alert('メジャー写真のピクセルを測定してください');
       return;
     }
-    if (baseAngleDeg === null || topAngleDeg === null) {
-      alert('足元と頂上を測定してください');
+    if (!buildingPx) {
+      alert('建物写真のピクセルを測定してください');
       return;
     }
-    const topRad = topAngleDeg * Math.PI / 180;
-    const baseRad = baseAngleDeg * Math.PI / 180;
-    const height = distance * (Math.tan(topRad) - Math.tan(baseRad));
-    if (height <= 0) {
-      alert('測定値が正しくありません。足元→頂上の順に測定してください。');
+
+    const scaleDist = 500; // メジャー撮影距離mm
+    const buildingDist = parseFloat(document.getElementById('buildingDist').value);
+    if (!buildingDist || buildingDist <= 0) {
+      alert('建物の撮影距離を入力してください');
       return;
     }
-    const heightRounded = Math.round(height * 10) / 10;
-    const floors = Math.round(height / 3);
+
+    // 距離比
+    const distRatio = buildingDist / scaleDist;
+
+    // 建物高さ = 建物ピクセル ÷ (スケールpx/mm) × 距離比
+    const heightMm = (buildingPx / (scalePxPerMm * 1000)) * 1000 * distRatio;
+
+    const heightRounded = Math.round(heightMm);
+    const heightM = (heightMm / 1000).toFixed(2);
+    const floors = Math.round(heightMm / 3000);
+
     document.getElementById('resultHeight').textContent = heightRounded;
-    document.getElementById('resultFloors').textContent = `約 ${floors} 階建て相当（1階≒3m換算）`;
+    document.getElementById('resultFloors').textContent =
+      `= 約 ${heightM}m ／ 約 ${floors} 階建て相当`;
     document.getElementById('result').classList.add('show');
-    updateStatus('✅ 計算完了！建物高さ約 ' + heightRounded + 'm');
   }
 
   function resetAll() {
-    baseAngleDeg = null;
-    topAngleDeg = null;
-    document.getElementById('baseAngle').textContent = '--';
-    document.getElementById('topAngle').textContent = '--';
-    document.getElementById('distance').value = '';
-    document.getElementById('btnTop').disabled = true;
-    document.getElementById('btnCalc').disabled = true;
+    resetScaleMeasure();
+    resetBuildingMeasure();
+    document.getElementById('scaleImg').style.display = 'none';
+    document.getElementById('buildingImg').style.display = 'none';
+    document.querySelector('#scalePhotoArea .placeholder').style.display = 'block';
+    document.querySelector('#buildingPhotoArea .placeholder').style.display = 'block';
     document.getElementById('result').classList.remove('show');
-    updateStatus('リセットしました。距離を入力してください。');
+    scalePxPerMm = null;
+    buildingPx = null;
   }
 </script>
 
