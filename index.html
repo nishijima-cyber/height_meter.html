@@ -20,30 +20,18 @@
       font-weight: bold;
       border-bottom: 2px solid #e94560;
     }
-    .desc {
-      background: #16213e;
-      margin: 12px;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 13px;
-      color: #aac4e0;
-      line-height: 1.8;
-    }
-    .desc strong { color: #e94560; }
 
     .photo-area {
       position: relative;
       width: 100%;
       background: #000;
-      min-height: 240px;
+      min-height: 300px;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
-    .photo-area img {
-      width: 100%;
-      display: block;
-    }
+    .photo-area img { width: 100%; display: block; }
     .photo-area .placeholder {
       color: #aac4e0;
       font-size: 14px;
@@ -57,153 +45,453 @@
       touch-action: none;
     }
 
-    .controls {
-      padding: 12px;
+    /* ルーペ */
+    #loupe {
+      position: absolute;
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      border: 3px solid #e94560;
+      overflow: hidden;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 12px rgba(0,0,0,0.9);
+      z-index: 100;
     }
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+
+    .controls { padding: 12px; }
+
+    /* モード切替 */
+    .mode-bar {
+      display: flex;
+      gap: 8px;
       margin-bottom: 10px;
     }
-    .btn-red { background: #e94560; color: #fff; }
-    .btn-purple { background: #533483; color: #fff; }
-    .btn-gray { background: transparent; color: #aac4e0; border: 1px solid #333; }
-    .btn:disabled { opacity: 0.4; }
+    .mode-btn {
+      flex: 1;
+      padding: 12px 6px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      background: #16213e;
+      color: #aac4e0;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+    }
+    .mode-btn.active {
+      border-color: #e94560;
+      color: #fff;
+      background: #0f3460;
+    }
 
     .status {
       background: #16213e;
       border-radius: 10px;
       padding: 14px;
-      font-size: 15px;
+      font-size: 14px;
       color: #fff;
       text-align: center;
       margin-bottom: 10px;
       font-weight: bold;
+      line-height: 1.5;
     }
-    .status.done { color: #e94560; }
 
-    .result-box {
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .btn-red { background: #e94560; color: #fff; }
+    .btn-green { background: #00c864; color: #fff; }
+    .btn-gray { background: transparent; color: #aac4e0; border: 1px solid #333; }
+    .btn:disabled { opacity: 0.4; }
+
+    /* 測定結果リスト */
+    .results {
       background: #16213e;
       border-radius: 12px;
-      padding: 24px;
-      text-align: center;
+      padding: 14px;
       margin: 0 12px 12px;
-      display: none;
     }
-    .result-box.show { display: block; }
-    .result-label { font-size: 14px; color: #aac4e0; margin-bottom: 8px; }
-    .result-height { font-size: 64px; font-weight: bold; color: #e94560; line-height: 1; }
-    .result-unit { font-size: 22px; color: #aac4e0; }
-    .result-sub { margin-top: 12px; font-size: 16px; color: #aac4e0; }
-    .result-note { margin-top: 10px; font-size: 12px; color: #555; }
+    .results h3 {
+      font-size: 14px;
+      color: #aac4e0;
+      margin-bottom: 10px;
+    }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #0f3460;
+      font-size: 15px;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-item .label { color: #aac4e0; font-size: 13px; }
+    .result-item .value { color: #e94560; font-weight: bold; font-size: 18px; }
+    .result-item .del {
+      background: #333;
+      border: none;
+      color: #aac4e0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .desc {
+      background: #16213e;
+      margin: 12px;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
+      color: #aac4e0;
+      line-height: 1.8;
+    }
+    .desc strong { color: #e94560; }
   </style>
 </head>
 <body>
 
 <header>📐 建物高さ測定ツール</header>
 
-<div class="desc">
-  <strong>使い方：</strong><br>
-  ① 建物全体が映るように写真を撮る<br>
-  ② 写真上の <strong>GL（地面）</strong> をタップ → 緑ピン<br>
-  ③ 壁の <strong>1mの位置</strong> をタップ → 黄ピン<br>
-  ④ 建物の <strong>最高部</strong> をタップ → 赤ピン<br>
-  ⑤ 自動で高さを計算
+<div class="desc" id="desc">
+  <strong>① まず写真を撮影</strong><br>
+  ② 「基準設定」モードでGLと1mをタップ<br>
+  ③ 「高さ測定」モードで測りたい部分の上下をタップ<br>
+  ④ 何度でも繰り返し測定可能
 </div>
 
 <div class="photo-area" id="photoArea">
   <div class="placeholder" id="placeholder">📷 下のボタンから写真を撮影してください</div>
   <img id="photo" style="display:none;" />
   <canvas id="canvas"></canvas>
+  <div id="loupe"><canvas id="loupeCanvas" width="130" height="130"></canvas></div>
 </div>
 
 <div class="controls">
-  <div class="status" id="status">写真を撮影してください</div>
-
   <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;" onchange="loadPhoto(event)">
   <button class="btn btn-red" onclick="document.getElementById('fileInput').click()">
     📷 写真を撮影する
   </button>
 
-  <button class="btn btn-purple" id="btnReset" onclick="resetPins()" style="display:none;">
-    ↩ ピンをリセット
-  </button>
-</div>
-
-<div class="result-box" id="result">
-  <div class="result-label">推定建物高さ</div>
-  <div>
-    <span class="result-height" id="resultHeight">--</span>
-    <span class="result-unit"> m</span>
+  <!-- モード切替 -->
+  <div class="mode-bar" id="modeBar" style="display:none;">
+    <div class="mode-btn active" id="modeRef" onclick="setMode('ref')">
+      📏 基準設定<br><small>GL・1m</small>
+    </div>
+    <div class="mode-btn" id="modeMeasure" onclick="setMode('measure')">
+      📐 高さ測定<br><small>何度でも</small>
+    </div>
   </div>
-  <div class="result-sub" id="resultSub"></div>
-  <div class="result-note">※1mの基準点の精度により誤差が生じる場合があります</div>
-</div>
 
-<div class="controls">
+  <div class="status" id="status">写真を撮影してください</div>
+
+  <button class="btn btn-gray" id="btnResetRef" onclick="resetRef()" style="display:none;">
+    ↩ 基準をリセット
+  </button>
   <button class="btn btn-gray" onclick="resetAll()">🔄 全リセット</button>
 </div>
 
+<!-- 測定結果リスト -->
+<div class="results" id="results" style="display:none;">
+  <h3>📋 測定結果</h3>
+  <div id="resultList"></div>
+</div>
+
 <script>
-  let pins = []; // 0:GL, 1:1m点, 2:TOP
-  let imgNaturalW = 1, imgNaturalH = 1;
-  let imgDisplayW = 1, imgDisplayH = 1;
+  // --- 状態 ---
+  let mode = 'ref'; // 'ref' or 'measure'
+  let refGL = null;   // GL点
+  let ref1m = null;   // 1m点
+  let refPxPer1m = null; // 1mあたりのピクセル数
+  let measurePts = []; // 現在測定中の点（0:下, 1:上）
+  let measurements = []; // 測定結果リスト
+  let imgEl = null;
 
-  const PIN_LABELS = ['GL', '1m', 'TOP'];
-  const PIN_COLORS = ['#00c864', '#ffcc00', '#e94560'];
-  const STATUS_MSGS = [
-    '📍 GL（地面）の位置をタップしてください',
-    '📍 壁の1m地点をタップしてください',
-    '📍 建物の最高部をタップしてください',
-    '✅ 計測完了！',
-  ];
-
+  // --- 写真読み込み ---
   function loadPhoto(e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
-      const img = document.getElementById('photo');
-      img.src = ev.target.result;
-      img.style.display = 'block';
+      imgEl = document.getElementById('photo');
+      imgEl.src = ev.target.result;
+      imgEl.style.display = 'block';
       document.getElementById('placeholder').style.display = 'none';
-      document.getElementById('btnReset').style.display = 'block';
-      img.onload = function() {
-        imgNaturalW = img.naturalWidth;
-        imgNaturalH = img.naturalHeight;
+      document.getElementById('modeBar').style.display = 'flex';
+      document.getElementById('btnResetRef').style.display = 'block';
+      imgEl.onload = function() {
         const canvas = document.getElementById('canvas');
-        canvas.width = imgNaturalW;
-        canvas.height = imgNaturalH;
-        pins = [];
+        canvas.width = imgEl.naturalWidth;
+        canvas.height = imgEl.naturalHeight;
+        resetAll();
+        setMode('ref');
         draw();
-        updateStatus();
       };
     };
     reader.readAsDataURL(file);
   }
 
-  // タップ処理
-  document.getElementById('canvas').addEventListener('touchstart', function(e) {
+  // --- モード切替 ---
+  function setMode(m) {
+    mode = m;
+    document.getElementById('modeRef').className = m === 'ref' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('modeMeasure').className = m === 'measure' ? 'mode-btn active' : 'mode-btn';
+    measurePts = [];
+    updateStatus();
+    draw();
+  }
+
+  // --- ステータス更新 ---
+  function updateStatus() {
+    const el = document.getElementById('status');
+    if (mode === 'ref') {
+      if (!refGL) {
+        el.textContent = '📍 GLの位置をタップしてください';
+      } else if (!ref1m) {
+        el.textContent = '📍 1mの位置をタップしてください';
+      } else {
+        el.textContent = '✅ 基準設定完了！\n「高さ測定」モードに切り替えてください';
+      }
+    } else {
+      if (!refPxPer1m) {
+        el.textContent = '⚠️ 先に「基準設定」でGL・1mをタップしてください';
+      } else if (measurePts.length === 0) {
+        el.textContent = '📍 測定する部分の\n下（低い方）をタップしてください';
+      } else if (measurePts.length === 1) {
+        el.textContent = '📍 測定する部分の\n上（高い方）をタップしてください';
+      } else {
+        el.textContent = '✅ 測定完了！続けて測定できます';
+      }
+    }
+  }
+
+  // --- タッチ処理 ---
+  const canvas = document.getElementById('canvas');
+
+  canvas.addEventListener('touchstart', function(e) {
     e.preventDefault();
-    if (pins.length >= 3) return;
     const touch = e.touches[0];
     const pt = getCanvasPoint(touch.clientX, touch.clientY);
-    addPin(pt.x, pt.y);
+    showLoupe(touch.clientX, touch.clientY, pt.x, pt.y);
   }, { passive: false });
 
-  document.getElementById('canvas').addEventListener('click', function(e) {
-    if (pins.length >= 3) return;
+  canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const pt = getCanvasPoint(touch.clientX, touch.clientY);
+    showLoupe(touch.clientX, touch.clientY, pt.x, pt.y);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const pt = getCanvasPoint(touch.clientX, touch.clientY);
+    hideLoupe();
+    handleTap(pt.x, pt.y);
+  }, { passive: false });
+
+  canvas.addEventListener('click', function(e) {
     const pt = getCanvasPoint(e.clientX, e.clientY);
-    addPin(pt.x, pt.y);
+    handleTap(pt.x, pt.y);
   });
 
+  function handleTap(x, y) {
+    if (mode === 'ref') {
+      if (!refGL) {
+        refGL = { x, y };
+      } else if (!ref1m) {
+        ref1m = { x, y };
+        // 1mのピクセル数計算
+        const dy = Math.abs(refGL.y - ref1m.y);
+        refPxPer1m = dy;
+      }
+    } else {
+      if (!refPxPer1m) return;
+      if (measurePts.length < 2) {
+        measurePts.push({ x, y });
+        if (measurePts.length === 2) {
+          // 高さ計算
+          const dy = Math.abs(measurePts[0].y - measurePts[1].y);
+          const heightM = dy / refPxPer1m;
+          const heightMm = Math.round(heightM * 1000);
+          measurements.push({
+            label: '測定' + (measurements.length + 1),
+            mm: heightMm,
+            m: Math.round(heightM * 100) / 100,
+            pts: [...measurePts],
+          });
+          renderResults();
+          measurePts = [];
+        }
+      }
+    }
+    draw();
+    updateStatus();
+  }
+
+  // --- 描画 ---
+  function draw() {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 基準点
+    if (refGL) drawPin(ctx, refGL, 'GL', '#00c864');
+    if (ref1m) drawPin(ctx, ref1m, '1m', '#ffcc00');
+    if (refGL && ref1m) {
+      ctx.beginPath();
+      ctx.setLineDash([12, 8]);
+      ctx.moveTo(refGL.x, refGL.y);
+      ctx.lineTo(ref1m.x, ref1m.y);
+      ctx.strokeStyle = '#ffcc0088';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 測定中の点
+    measurePts.forEach(function(pt, i) {
+      drawPin(ctx, pt, i === 0 ? '下' : '上', i === 0 ? '#4488ff' : '#e94560');
+    });
+    if (measurePts.length === 2) {
+      ctx.beginPath();
+      ctx.moveTo(measurePts[0].x, measurePts[0].y);
+      ctx.lineTo(measurePts[1].x, measurePts[1].y);
+      ctx.strokeStyle = '#e9456088';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // 過去の測定結果
+    measurements.forEach(function(m, i) {
+      const colors = ['#ff8844', '#44aaff', '#aa44ff', '#44ffaa'];
+      const c = colors[i % colors.length];
+      drawPin(ctx, m.pts[0], '↓', c);
+      drawPin(ctx, m.pts[1], '↑', c);
+      ctx.beginPath();
+      ctx.moveTo(m.pts[0].x, m.pts[0].y);
+      ctx.lineTo(m.pts[1].x, m.pts[1].y);
+      ctx.strokeStyle = c + '88';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // 高さラベル
+      const midX = (m.pts[0].x + m.pts[1].x) / 2 + 40;
+      const midY = (m.pts[0].y + m.pts[1].y) / 2;
+      ctx.fillStyle = c;
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.m + 'm', midX, midY);
+    });
+  }
+
+  function drawPin(ctx, pt, label, color) {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 26, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, pt.x, pt.y);
+  }
+
+  // --- ルーペ ---
+  function showLoupe(clientX, clientY, canvasX, canvasY) {
+  const loupe = document.getElementById('loupe');
+    const loupeCanvas = document.getElementById('loupeCanvas');
+    const area = document.getElementById('photoArea');
+    const areaRect = area.getBoundingClientRect();
+    const size = 130;
+
+    let lx = clientX - areaRect.left - size / 2;
+    let ly = clientY - areaRect.top - size - 20;
+    if (ly < 0) ly = clientY - areaRect.top + 30;
+    loupe.style.left = lx + 'px';
+    loupe.style.top = ly + 'px';
+    loupe.style.display = 'block';
+
+    const ctx = loupeCanvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    const zoom = 3;
+    const sx = canvasX - size / zoom / 2;
+    const sy = canvasY - size / zoom / 2;
+    if (imgEl) ctx.drawImage(imgEl, sx, sy, size / zoom, size / zoom, 0, 0, size, size);
+
+    // 十字線
+    ctx.strokeStyle = '#e94560';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(size/2, 0); ctx.lineTo(size/2, size);
+    ctx.moveTo(0, size/2); ctx.lineTo(size, size/2);
+    ctx.stroke();
+  }
+
+  function hideLoupe() {
+    document.getElementById('loupe').style.display = 'none';
+  }
+
+  // --- 結果表示 ---
+  function renderResults() {
+    const list = document.getElementById('resultList');
+    const box = document.getElementById('results');
+    if (measurements.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    list.innerHTML = measurements.map(function(m, i) {
+      return `<div class="result-item">
+        <div>
+          <div class="label">${m.label}</div>
+          <div class="value">${m.m} m</div>
+          <div class="label">${m.mm} mm</div>
+        </div>
+        <button class="del" onclick="deleteMeasure(${i})">削除</button>
+      </div>`;
+    }).join('');
+  }
+
+  function deleteMeasure(i) {
+    measurements.splice(i, 1);
+    measurements.forEach(function(m, j) { m.label = '測定' + (j+1); });
+    renderResults();
+    draw();
+  }
+
+  // --- リセット ---
+  function resetRef() {
+    refGL = null;
+    ref1m = null;
+    refPxPer1m = null;
+    measurePts = [];
+    setMode('ref');
+    draw();
+    updateStatus();
+  }
+
+  function resetAll() {
+    refGL = null;
+    ref1m = null;
+    refPxPer1m = null;
+    measurePts = [];
+    measurements = [];
+    renderResults();
+    draw();
+    updateStatus();
+  }
+
+  // --- ユーティリティ ---
   function getCanvasPoint(clientX, clientY) {
-    const canvas = document.getElementById('canvas');
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
@@ -211,108 +499,6 @@
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
     };
-  }
-
-  function addPin(x, y) {
-    pins.push({ x, y });
-    draw();
-    updateStatus();
-    if (pins.length === 3) {
-      setTimeout(calculate, 300);
-    }
-  }
-
-  function draw() {
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    pins.forEach(function(pin, i) {
-      // 円
-      ctx.beginPath();
-      ctx.arc(pin.x, pin.y, 28, 0, Math.PI * 2);
-      ctx.fillStyle = PIN_COLORS[i];
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      // ラベル
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(PIN_LABELS[i], pin.x, pin.y);
-
-      // GL〜TOPの線
-      if (i > 0) {
-        ctx.beginPath();
-        ctx.setLineDash([10, 8]);
-        ctx.moveTo(pins[i-1].x, pins[i-1].y);
-        ctx.lineTo(pin.x, pin.y);
-        ctx.strokeStyle = PIN_COLORS[i];
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    });
-  }
-
-  function updateStatus() {
-    const el = document.getElementById('status');
-    el.textContent = STATUS_MSGS[pins.length] || STATUS_MSGS[3];
-    el.className = pins.length >= 3 ? 'status done' : 'status';
-  }
-
-  function calculate() {
-    // GLとTOPのy座標差 = 建物全体のピクセル
-    const glY  = pins[0].y;
-    const oneM = pins[1].y;
-    const topY = pins[2].y;
-
-    // 1mのピクセル数（GL〜1m点）
-    const oneMpx = Math.abs(glY - oneM);
-    if (oneMpx === 0) {
-      alert('GLと1m点が同じ位置です。正しくタップしてください。');
-      return;
-    }
-
-    // 建物全体のピクセル数（GL〜TOP）
-    const buildingPx = Math.abs(glY - topY);
-
-    // 高さ = (建物px ÷ 1mのpx) × 1m
-    const heightM = buildingPx / oneMpx;
-    const heightMm = Math.round(heightM * 1000);
-    const heightRounded = Math.round(heightM * 10) / 10;
-    const floors = Math.round(heightM / 3);
-
-    document.getElementById('resultHeight').textContent = heightRounded;
-    document.getElementById('resultSub').textContent =
-      `= ${heightMm} mm ／ 約 ${floors} 階建て相当`;
-    document.getElementById('result').classList.add('show');
-  }
-
-  function resetPins() {
-    pins = [];
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    document.getElementById('result').classList.remove('show');
-    updateStatus();
-  }
-
-  function resetAll() {
-    pins = [];
-    document.getElementById('photo').style.display = 'none';
-    document.getElementById('placeholder').style.display = 'block';
-    document.getElementById('btnReset').style.display = 'none';
-    document.getElementById('result').classList.remove('show');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    document.getElementById('status').textContent = '写真を撮影してください';
-    document.getElementById('status').className = 'status';
-    document.getElementById('fileInput').value = '';
   }
 </script>
 
