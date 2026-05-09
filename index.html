@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e94560">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="高さツール">
+  <link rel="manifest" href="/height_meter.html/manifest.json">
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAACY0lEQVR4nO3csS5DYRiAYcRKxFiXICHclr2zmclgYXUjEjODiPvgBqwi3qSVOueU59nb8w9vvz9Nm29zNjvagO9sjX0ApkscJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEHa/tnLng5PV3uOz05eHn/vzVnc0nH8ahZMimuF9MNr5TO3wF9lcpDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRwkcZDEQRIHSRykFSxvWWoRlE0va8TkIImDZCcYyeQgiYMkDpI4SOIgiYMkDpI4SOIgiYMkDtIKfltZd7u7O6+vD2Of4qvz88vb27txz2BykMRBEgdJHCRxkHxb+cbFxfXV1c2QT9zf33t+vh/yiYswOUjiIImDJA6SOEjiIImDJA6SOEjiIImDJA6SOEjiIA29E2wRtsFMhMlBEgfJTjCSyUESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQxEESB0kcJHGQht4JZtPLGjE5SOIg2QlGMjlI4iCJgyQOkjhI4iCJgyQOkjhI4iCJgyQOkjhI4iCJgyQOkjhI4iCJgyQO0gr+YPz3zOdn8/nZ2KcYn8lBEgdJHCRxkMRB8m1l4+3t/eDgeOxTTJHJQRIHSRwkcZDEQRp6J9gibIOZCJODtHQcJy+PPtn/xOZsdjT2GZgo1wpJHCRxkMRBEgdJHCRxkMRBEgdJHCRxkMRBEgdJHCRxkMRBEgdJHCRxkD4AlSYvVZpLrikAAAAASUVORK5CYII=">
   <title>西島工業 建物高さツール</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -546,6 +552,12 @@
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
     };
+  }
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/height_meter.html/sw.js');
   }
 </script>
 
