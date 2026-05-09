@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>建物高さ測定ツール</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      background: #16213e;
+      width: 100%;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #0f3460;
+    }
+    .main {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 16px;
+      flex: 1;
+    }
+
+    /* 説明 */
+    .desc {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #aac4e0;
+    }
+    .desc strong { color: #e94560; }
+
+    /* 距離入力 */
+    .input-section {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .input-section label {
+      display: block;
+      font-size: 13px;
+      color: #aac4e0;
+      margin-bottom: 8px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .input-row input {
+      flex: 1;
+      background: #0f3460;
+      border: 1px solid #e94560;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 20px;
+      padding: 12px;
+      text-align: center;
+      outline: none;
+    }
+    .input-row span { color: #aac4e0; font-size: 14px; }
+
+    /* 測定ボタン群 */
+    .measure-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-base {
+      background: #0f3460;
+      color: #fff;
+      border: 2px solid #e94560;
+    }
+    .btn-base:active { background: #e94560; }
+    .btn-top {
+      background: #e94560;
+      color: #fff;
+    }
+    .btn-top:active { opacity: 0.8; }
+    .btn-calc {
+      background: #533483;
+      color: #fff;
+    }
+    .btn-calc:active { opacity: 0.8; }
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* 角度表示 */
+    .angle-display {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+    .angle-item label {
+      display: block;
+      font-size: 12px;
+      color: #aac4e0;
+      margin-bottom: 4px;
+    }
+    .angle-item .val {
+      font-size: 24px;
+      font-weight: bold;
+      color: #e94560;
+    }
+    .angle-item .unit {
+      font-size: 12px;
+      color: #aac4e0;
+    }
+
+    /* 結果 */
+    .result-section {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .result-section.show { display: block; }
+    .result-section .label { font-size: 14px; color: #aac4e0; margin-bottom: 8px; }
+    .result-section .height {
+      font-size: 56px;
+      font-weight: bold;
+      color: #e94560;
+      line-height: 1;
+    }
+    .result-section .unit { font-size: 20px; color: #aac4e0; }
+    .result-section .floors {
+      margin-top: 12px;
+      font-size: 16px;
+      color: #aac4e0;
+    }
+    .result-section .note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* ステータス */
+    .status {
+      background: #0f3460;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #aac4e0;
+      margin-bottom: 16px;
+      text-align: center;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* リセット */
+    .btn-reset {
+      background: transparent;
+      color: #aac4e0;
+      border: 1px solid #333;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .step-badge {
+      display: inline-block;
+      background: #e94560;
+      color: #fff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>📐 建物高さ測定ツール</header>
+
+<div class="main">
+
+  <div class="desc">
+    <strong>使い方：</strong><br>
+    ① 建物までの距離を入力<br>
+    ② スマホを建物の<strong>足元</strong>に向けて「足元を測定」<br>
+    ③ スマホを建物の<strong>頂上</strong>に向けて「頂上を測定」<br>
+    ④「高さを計算」をタップ
+  </div>
+
+  <div class="input-section">
+    <label><span class="step-badge">1</span>建物までの距離（目測でOK）</label>
+    <div class="input-row">
+      <input type="number" id="distance" placeholder="例：15" min="1" max="200">
+      <span>メートル</span>
+    </div>
+  </div>
+
+  <div class="angle-display">
+    <div class="angle-item">
+      <label>足元の角度</label>
+      <div class="val" id="baseAngle">--</div>
+      <div class="unit">度</div>
+    </div>
+    <div class="angle-item">
+      <label>頂上の角度</label>
+      <div class="val" id="topAngle">--</div>
+      <div class="unit">度</div>
+    </div>
+    <div class="angle-item">
+      <label>現在の角度</label>
+      <div class="val" id="currentAngle">--</div>
+      <div class="unit">度</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">まず「センサーを起動」を押してください。</div>
+
+  <div class="measure-section">
+    <button class="btn" id="btnStart" onclick="startSensor()" style="background:#e94560;color:#fff;margin-bottom:4px;">
+      🔓 センサーを起動する（最初に1回だけ）
+    </button>
+    <button class="btn btn-base" id="btnBase" onclick="measureBase()" disabled>
+      <span class="step-badge">2</span>足元を測定
+    </button>
+    <button class="btn btn-top" id="btnTop" onclick="measureTop()" disabled>
+      <span class="step-badge">3</span>頂上を測定
+    </button>
+    <button class="btn btn-calc" id="btnCalc" onclick="calculate()" disabled>
+      <span class="step-badge">4</span>高さを計算
+    </button>
+  </div>
+
+  <div class="result-section" id="result">
+    <div class="label">推定建物高さ</div>
+    <div>
+      <span class="height" id="resultHeight">--</span>
+      <span class="unit"> m</span>
+    </div>
+    <div class="floors" id="resultFloors"></div>
+    <div class="note">※目測距離による誤差があります。参考値としてご使用ください。</div>
+  </div>
+
+  <button class="btn btn-reset" onclick="reset()">🔄 リセット</button>
+
+</div>
+
+<script>
+  let baseAngleDeg = null;
+  let topAngleDeg = null;
+  let currentAngleDeg = 0;
+  let sensorActive = false;
+
+  function updateStatus(msg) {
+    document.getElementById('status').textContent = msg;
+  }
+
+  // デバイス傾きセンサー起動（ボタン押下時に呼ぶ）
+  function startSensor() {
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ は許可が必要
+      DeviceOrientationEvent.requestPermission()
+        .then(response => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            sensorActive = true;
+            document.getElementById('btnStart').textContent = '✅ センサー起動中';
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnBase').disabled = false;
+            updateStatus('センサー起動中！建物に向けてください。');
+          } else {
+            updateStatus('⚠️ センサーの許可が拒否されました。設定から許可してください。');
+          }
+        }).catch(e => {
+          updateStatus('センサーエラー: ' + e.message);
+        });
+    } else if (window.DeviceOrientationEvent) {
+      // Android など
+      window.addEventListener('deviceorientation', handleOrientation);
+      sensorActive = true;
+      document.getElementById('btnStart').textContent = '✅ センサー起動中';
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnBase').disabled = false;
+      updateStatus('センサー起動中！建物に向けてください。');
+    } else {
+      // センサーなし（PCなど）→ デモモード
+      sensorActive = false;
+      document.getElementById('btnStart').textContent = '⚠️ センサーなし（デモモード）';
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnBase').disabled = false;
+      updateStatus('⚠️ センサーがありません。角度を手入力してください。');
+    }
+  }
+
+  function handleOrientation(event) {
+    // betaはデバイスの前後の傾き（-180〜180）
+    // 水平=0、上向き=-90、下向き=90
+    let beta = event.beta;
+    if (beta === null) return;
+    // 仰角に変換（上向きが正）
+    currentAngleDeg = -beta;
+    document.getElementById('currentAngle').textContent = currentAngleDeg.toFixed(1);
+  }
+
+  function measureBase() {
+    if (!sensorActive) {
+      // デモモード：手入力
+      let val = prompt('足元の角度を入力（例：-5）', '-5');
+      if (val !== null) {
+        baseAngleDeg = parseFloat(val);
+        document.getElementById('baseAngle').textContent = baseAngleDeg.toFixed(1);
+        document.getElementById('btnTop').disabled = false;
+        updateStatus('✅ 足元を記録しました。次に頂上に向けてください。');
+      }
+      return;
+    }
+    baseAngleDeg = currentAngleDeg;
+    document.getElementById('baseAngle').textContent = baseAngleDeg.toFixed(1);
+    document.getElementById('btnTop').disabled = false;
+    updateStatus('✅ 足元を記録しました。次に頂上に向けてください。');
+  }
+
+  function measureTop() {
+    if (!sensorActive) {
+      let val = prompt('頂上の角度を入力（例：35）', '35');
+      if (val !== null) {
+        topAngleDeg = parseFloat(val);
+        document.getElementById('topAngle').textContent = topAngleDeg.toFixed(1);
+        document.getElementById('btnCalc').disabled = false;
+        updateStatus('✅ 頂上を記録しました。「高さを計算」を押してください。');
+      }
+      return;
+    }
+    topAngleDeg = currentAngleDeg;
+    document.getElementById('topAngle').textContent = topAngleDeg.toFixed(1);
+    document.getElementById('btnCalc').disabled = false;
+    updateStatus('✅ 頂上を記録しました。「高さを計算」を押してください。');
+  }
+
+  function calculate() {
+    const distance = parseFloat(document.getElementById('distance').value);
+    if (!distance || distance <= 0) {
+      alert('距離を入力してください');
+      return;
+    }
+    if (baseAngleDeg === null || topAngleDeg === null) {
+      alert('足元と頂上を測定してください');
+      return;
+    }
+
+    // 三角法で高さ計算
+    // height = distance × (tan(topAngle) - tan(baseAngle))
+    const topRad = topAngleDeg * Math.PI / 180;
+    const baseRad = baseAngleDeg * Math.PI / 180;
+    const height = distance * (Math.tan(topRad) - Math.tan(baseRad));
+
+    if (height <= 0) {
+      alert('測定値が正しくありません。足元→頂上の順に測定してください。');
+      return;
+    }
+
+    const heightRounded = Math.round(height * 10) / 10;
+    const floors = Math.round(height / 3);
+
+    document.getElementById('resultHeight').textContent = heightRounded;
+    document.getElementById('resultFloors').textContent =
+      `約 ${floors} 階建て相当（1階≒3m換算）`;
+    document.getElementById('result').classList.add('show');
+    updateStatus(`✅ 計算完了！建物高さ約 ${heightRounded}m`);
+  }
+
+  function reset() {
+    baseAngleDeg = null;
+    topAngleDeg = null;
+    document.getElementById('baseAngle').textContent = '--';
+    document.getElementById('topAngle').textContent = '--';
+    document.getElementById('distance').value = '';
+    document.getElementById('btnTop').disabled = true;
+    document.getElementById('btnCalc').disabled = true;
+    document.getElementById('result').classList.remove('show');
+    updateStatus('リセットしました。距離を入力して測定してください。');
+  }
+</script>
+
+</body>
+</html>
