@@ -425,7 +425,7 @@ const STORAGE_KEY = 'nishijima_kouteikanri_v1';
 const PROCS = ['架','CAP','追加','是正','払','常用'];
 const PROC_COLORS = {架:'#757575',CAP:'#1565c0',追加:'#2e7d32',是正:'#c62828',払:'#bf360c',常用:'#6a1b9a'};
 let state = {
-  sites:[],members:[],trucks:[],schedules:[],
+  sites:[],members:[],trucks:[],schedules:[],files:[],
   view:'home',calYear:0,calMonth:0,selectedDate:null,
   editingSch:null,editingSite:null,editingSchProcess:'架'
 };
@@ -448,7 +448,7 @@ function loadState(){
   if(!state.selectedDate)state.selectedDate=toDateStr(n);
 }
 function saveState(){
-  const d={sites:state.sites,members:state.members,trucks:state.trucks,schedules:state.schedules};
+  const d={sites:state.sites,members:state.members,trucks:state.trucks,schedules:state.schedules,files:state.files};
   localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
 }
 
@@ -872,6 +872,7 @@ function showSiteDetail(siteId){
             <span class="folder-icon">📁</span>${f}
           </div>`).join('')}
       </div>
+      ${renderSiteFiles(siteId)}
       <div class="section-title" style="margin-top:16px">📋 工程履歴</div>
       <div>${schs.slice(-10).reverse().map(sc=>`
         <div class="schedule-row" onclick="openDayView('${sc.date}')">
@@ -885,7 +886,117 @@ function showSiteDetail(siteId){
     </div>`;
 }
 function openFolder(siteId,folderName){
-  toast('📁 '+folderName+' フォルダー（ファイル管理はPC側で操作してください）');
+  // 隠しファイル入力要素を作成
+  const input=document.createElement('input');
+  input.type='file';
+  input.multiple=true;
+  input.accept='*/*';
+  input.style.display='none';
+  input.onchange=function(e){
+    const files=e.target.files;
+    if(files.length>0){
+      uploadFiles(siteId,folderName,files);
+    }
+    document.body.removeChild(input);
+  };
+  document.body.appendChild(input);
+  input.click();
+}
+function uploadFiles(siteId,folderName,files){
+  let uploaded=0;
+  for(let file of files){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const fileData={
+        id:uid(),
+        siteId,
+        folderName,
+        name:file.name,
+        size:file.size,
+        type:file.type,
+        data:e.target.result,
+        uploadedAt:Date.now()
+      };
+      state.files.push(fileData);
+      uploaded++;
+      if(uploaded===files.length){
+        saveState();
+        toast('📁 '+uploaded+'個のファイルを'+folderName+'に保存しました');
+        showSiteDetail(siteId); // ファイル一覧を更新
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+function renderSiteFiles(siteId){
+  const siteFiles=state.files.filter(f=>f.siteId===siteId);
+  if(siteFiles.length===0)return '';
+  
+  const filesByFolder={};
+  siteFiles.forEach(f=>{
+    if(!filesByFolder[f.folderName])filesByFolder[f.folderName]=[];
+    filesByFolder[f.folderName].push(f);
+  });
+  
+  return Object.keys(filesByFolder).map(folderName=>{
+    const files=filesByFolder[folderName];
+    return `
+      <div class="section-title" style="margin-top:16px">📂 ${folderName} (${files.length}件)</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${files.map(f=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f8f9fa;border-radius:6px">
+            <span style="font-size:16px">${getFileIcon(f.type)}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+              <div style="font-size:11px;color:var(--sub)">${formatFileSize(f.size)} • ${formatDateTime(f.uploadedAt)}</div>
+            </div>
+            <button class="btn-sm" onclick="downloadFile('${f.id}')">📥</button>
+            <button class="btn-sm" style="background:#ffebee;color:#c62828" onclick="deleteFile('${f.id}','${siteId}')">削除</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+function getFileIcon(mimeType){
+  if(mimeType.startsWith('image/'))return '🖼️';
+  if(mimeType.startsWith('video/'))return '🎥';
+  if(mimeType.startsWith('audio/'))return '🎵';
+  if(mimeType.includes('pdf'))return '📄';
+  if(mimeType.includes('word')||mimeType.includes('document'))return '📝';
+  if(mimeType.includes('excel')||mimeType.includes('spreadsheet'))return '📊';
+  if(mimeType.includes('powerpoint')||mimeType.includes('presentation'))return '📽️';
+  if(mimeType.includes('zip')||mimeType.includes('rar'))return '📦';
+  return '📄';
+}
+function formatFileSize(bytes){
+  if(bytes===0)return '0 B';
+  const k=1024;
+  const sizes=['B','KB','MB','GB'];
+  const i=Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
+}
+function formatDateTime(timestamp){
+  const d=new Date(timestamp);
+  return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function downloadFile(fileId){
+  const file=state.files.find(f=>f.id===fileId);
+  if(!file)return;
+  const link=document.createElement('a');
+  link.href=file.data;
+  link.download=file.name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast('📥 '+file.name+' をダウンロードしました');
+}
+function deleteFile(fileId,siteId){
+  if(!confirm('このファイルを削除しますか？'))return;
+  state.files=state.files.filter(f=>f.id!==fileId);
+  saveState();
+  showSiteDetail(siteId);
+  toast('🗑️ ファイルを削除しました');
 }
 function openAddSite(){
   state.editingSite=null;
