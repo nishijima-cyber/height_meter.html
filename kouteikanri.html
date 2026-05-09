@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="工程管理">
+<title>西島工業 工程管理</title>
+<style>
+:root{
+  --ka:#757575;--cap:#1565c0;--add:#2e7d32;--fix:#c62828;--pay:#bf360c;--daily:#6a1b9a;
+  --ka-l:#eeeeee;--cap-l:#e3f2fd;--add-l:#e8f5e9;--fix-l:#ffebee;--pay-l:#fbe9e7;--daily-l:#f3e5f5;
+  --bg:#f0f2f5;--card:#fff;--border:#dde1e7;--text:#1a1a2e;--sub:#666;
+  --nav:#1a1a2e;--accent:#e94560;--radius:10px;--shadow:0 2px 8px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input,select,textarea{font-family:inherit;outline:none}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--nav);display:flex;z-index:1000;box-shadow:0 -2px 10px rgba(0,0,0,.3)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#aaa;font-size:10px;gap:3px;transition:.2s;padding:6px 0}
+.nav-btn svg{width:22px;height:22px}
+.nav-btn.active{color:var(--accent)}
+.nav-btn:active{opacity:.7}
+
+/* HEADER */
+#header{background:var(--nav);color:#fff;padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+#header h1{font-size:17px;font-weight:700;letter-spacing:.5px}
+#header .hbtn{background:var(--accent);color:#fff;padding:6px 12px;border-radius:20px;font-size:13px;font-weight:600}
+
+/* VIEWS */
+.view{display:none;padding:12px}
+.view.active{display:block}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:12px 16px;font-weight:700;font-size:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+
+/* PROCESS BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.badge.架{background:var(--ka)}
+.badge.CAP{background:var(--cap)}
+.badge.追加{background:var(--add)}
+.badge.是正{background:var(--fix)}
+.badge.払{background:var(--pay)}
+.badge.常用{background:var(--daily)}
+
+/* HOME */
+.home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+.stat-card .num{font-size:28px;font-weight:800;color:var(--accent)}
+.stat-card .lbl{font-size:11px;color:var(--sub);margin-top:4px}
+.today-list{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.schedule-row{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.schedule-row:last-child{border-bottom:none}
+.sr-main{flex:1;min-width:0}
+.sr-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.sr-members{font-size:11px;color:var(--sub);margin-top:2px}
+
+/* CALENDAR */
+#cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#cal-nav h2{font-size:18px;font-weight:800}
+#cal-nav button{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:14px;font-weight:600}
+.cal-stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cs-item{background:var(--card);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;border-left:4px solid #ccc;box-shadow:var(--shadow)}
+.cs-item.架{border-color:var(--ka)}
+.cs-item.CAP{border-color:var(--cap)}
+.cs-item.追加{border-color:var(--add)}
+.cs-item.是正{border-color:var(--fix)}
+.cs-item.払{border-color:var(--pay)}
+.cs-item.常用{border-color:var(--daily)}
+.cal-grid{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:#f8f9fa}
+.cal-head div{text-align:center;padding:8px 2px;font-size:11px;font-weight:700;color:var(--sub)}
+.cal-head div:first-child{color:#e53935}
+.cal-head div:last-child{color:#1565c0}
+.cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{border-top:1px solid var(--border);border-right:1px solid var(--border);min-height:90px;padding:4px;cursor:pointer;transition:.15s;position:relative}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell:hover{background:#f5f5f5}
+.cal-cell.today{background:#fff8f8}
+.cal-cell.other-month{background:#fafafa}
+.cal-cell.other-month .cell-day{color:#bbb}
+.cal-cell.selected{background:#e3f2fd}
+.cell-day{font-size:12px;font-weight:700;margin-bottom:3px;text-align:center;line-height:20px;width:20px;border-radius:50%}
+.cal-cell.today .cell-day{background:var(--accent);color:#fff}
+.cal-cell:nth-child(7n+1) .cell-day{color:#e53935}
+.cal-cell:nth-child(7n) .cell-day{color:#1565c0}
+.cal-card{border-radius:5px;padding:2px 5px;margin-bottom:2px;font-size:10px;font-weight:600;color:#fff;cursor:grab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;user-select:none}
+.cal-card.架{background:var(--ka)}
+.cal-card.CAP{background:var(--cap)}
+.cal-card.追加{background:var(--add)}
+.cal-card.是正{background:var(--fix)}
+.cal-card.払{background:var(--pay)}
+.cal-card.常用{background:var(--daily)}
+.cal-card.dragging{opacity:.5}
+.cal-cell.drag-over{background:#e8f5e9;outline:2px dashed #4caf50}
+.cal-more{font-size:10px;color:var(--accent);text-align:center;margin-top:1px}
+.rain-btn{background:#37474f;color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rain-btn svg{width:16px;height:16px}
+.rain-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+
+/* DAY VIEW */
+#day-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+#day-header h2{font-size:18px;font-weight:800}
+#day-back{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px}
+.day-layout{display:flex;gap:12px}
+.day-main{flex:1;min-width:0}
+.day-side{width:160px;flex-shrink:0}
+.day-table-wrap{overflow-x:auto}
+.day-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.day-table th{background:#f8f9fa;padding:9px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--sub);border-bottom:2px solid var(--border);white-space:nowrap}
+.day-table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.day-table tr:last-child td{border-bottom:none}
+.day-table tr:hover{background:#f9f9f9}
+.member-chip{display:inline-flex;align-items:center;background:#e3f2fd;color:#1565c0;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600;margin:2px;cursor:pointer}
+.member-chip:hover{background:#bbdefb}
+.map-link{color:var(--cap);font-size:11px;cursor:pointer;text-decoration:underline}
+.add-schedule-btn{background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;width:fit-content}
+
+/* MEMBER SIDE PANEL */
+.side-panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px}
+.side-panel h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--sub)}
+.member-item{padding:8px 10px;border-radius:8px;background:#f8f9fa;margin-bottom:6px;cursor:grab;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;user-select:none}
+.member-item:hover{background:#e3f2fd}
+.member-item .drag-icon{color:#bbb;font-size:16px}
+.double-book-warn{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:6px 10px;font-size:11px;color:#856404;margin-top:4px}
+
+/* SITES */
+.site-list{display:flex;flex-direction:column;gap:10px}
+.site-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;cursor:pointer}
+.site-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.site-card h3{font-size:15px;font-weight:700}
+.site-card .meta{font-size:12px;color:var(--sub);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap}
+.site-detail{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.site-detail h2{font-size:18px;font-weight:800;margin-bottom:8px}
+.site-info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.info-item{font-size:13px}
+.info-item .lbl{font-size:11px;color:var(--sub);margin-bottom:2px;font-weight:600}
+.folder-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.folder-btn{background:#f8f9fa;border:2px dashed #ddd;border-radius:var(--radius);padding:16px 10px;text-align:center;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer}
+.folder-btn:hover{background:#e3f2fd;border-color:var(--cap)}
+.folder-icon{font-size:28px;display:block;margin-bottom:4px}
+
+/* MEMBERS VIEW */
+.member-manage-list{display:flex;flex-direction:column;gap:8px}
+.member-manage-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.member-manage-row input{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.member-manage-row .del-btn{background:#ffebee;color:#c62828;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700}
+
+/* TRUCK VIEW */
+.truck-list{display:flex;flex-direction:column;gap:8px}
+.truck-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.truck-row input{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+
+/* SEARCH */
+.search-box{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:12px;display:flex;gap:8px}
+.search-box input{flex:1;border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;transition:.2s}
+.search-box input:focus{border-color:var(--accent)}
+.search-box button{background:var(--accent);color:#fff;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700}
+.search-result{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.sr-row{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sr-row:last-child{border-bottom:none}
+.sr-date{font-size:11px;color:var(--sub);min-width:70px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:20px}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:16px;text-align:center}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:12px;font-weight:700;color:var(--sub);display:block;margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;border:2px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;transition:.2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.btn-primary{flex:1;background:var(--accent);color:#fff;border-radius:10px;padding:14px;font-size:16px;font-weight:700}
+.btn-cancel{background:#f5f5f5;color:#666;border-radius:10px;padding:14px 20px;font-size:16px;font-weight:700}
+.btn-danger{background:#ffebee;color:#c62828;border-radius:10px;padding:14px 20px;font-size:16px;font-weight:700}
+
+/* PROCESS SELECTOR */
+.process-selector{display:flex;gap:8px;flex-wrap:wrap}
+.proc-opt{padding:8px 16px;border-radius:20px;font-size:14px;font-weight:700;border:2px solid transparent;cursor:pointer;transition:.2s;opacity:.5}
+.proc-opt.active{opacity:1;border-color:rgba(0,0,0,.2)}
+.proc-opt.架{background:var(--ka-l);color:var(--ka)}
+.proc-opt.active.架{background:var(--ka);color:#fff}
+.proc-opt.CAP{background:var(--cap-l);color:var(--cap)}
+.proc-opt.active.CAP{background:var(--cap);color:#fff}
+.proc-opt.追加{background:var(--add-l);color:var(--add)}
+.proc-opt.active.追加{background:var(--add);color:#fff}
+.proc-opt.是正{background:var(--fix-l);color:var(--fix)}
+.proc-opt.active.是正{background:var(--fix);color:#fff}
+.proc-opt.払{background:var(--pay-l);color:var(--pay)}
+.proc-opt.active.払{background:var(--pay);color:#fff}
+.proc-opt.常用{background:var(--daily-l);color:var(--daily)}
+.proc-opt.active.常用{background:var(--daily);color:#fff}
+
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:3000;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:slideDown .3s ease}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ADD FAB */
+.fab{position:fixed;right:16px;bottom:80px;width:56px;height:56px;border-radius:28px;background:var(--accent);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(233,69,96,.5);z-index:500;transition:.2s}
+.fab:active{transform:scale(.95)}
+
+/* PRINT */
+@media print{
+  #nav,.fab,#header,.rain-actions,.add-schedule-btn,#day-back,.side-panel{display:none!important}
+  body{padding:0}
+  .day-table{box-shadow:none;border:1px solid #ccc}
+  .print-title{display:block!important;font-size:20px;font-weight:800;margin-bottom:10px}
+}
+.print-title{display:none}
+
+/* UTIL */
+.flex{display:flex}.gap8{gap:8px}.gap12{gap:12px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.btn-sm{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;background:var(--card);border:1px solid var(--border)}
+.empty{text-align:center;padding:40px;color:#bbb;font-size:14px}
+.section-title{font-size:13px;font-weight:700;color:var(--sub);margin:12px 0 8px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <h1>🏗 西島工業 工程管理</h1>
+  <span id="header-date" style="font-size:12px;color:#aaa"></span>
+</div>
+
+<!-- VIEWS -->
+<div id="view-home" class="view active">
+  <div class="home-stats" id="home-stats"></div>
+  <div class="section-title">📋 今日の工程</div>
+  <div id="today-list" class="today-list"></div>
+  <div class="section-title" style="margin-top:14px">📋 明日の工程</div>
+  <div id="tomorrow-list" class="today-list"></div>
+</div>
+
+<div id="view-cal" class="view">
+  <div id="cal-nav">
+    <button onclick="changeMonth(-1)">◀</button>
+    <h2 id="cal-title"></h2>
+    <button onclick="changeMonth(1)">▶</button>
+  </div>
+  <div class="cal-stats" id="cal-stats"></div>
+  <div class="rain-actions">
+    <button class="rain-btn" onclick="rainDelay(false)">🌧 選択日を翌営業日へ延期</button>
+    <button class="rain-btn" onclick="rainDelay(true)" style="background:#546e7a">🌧 今日の全工程を一括延期</button>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-head">
+      <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+    </div>
+    <div class="cal-body" id="cal-body"></div>
+  </div>
+</div>
+
+<div id="view-day" class="view">
+  <div id="day-header">
+    <button id="day-back" onclick="showCal()">← カレンダー</button>
+    <h2 id="day-title"></h2>
+  </div>
+  <div class="print-title" id="print-title"></div>
+  <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="add-schedule-btn" onclick="openAddSchedule()">＋ 工程追加</button>
+    <button class="btn-sm" onclick="printDay('today')">🖨 今日印刷</button>
+    <button class="btn-sm" onclick="printDay('tomorrow')">🖨 明日印刷</button>
+    <button class="btn-sm" onclick="printDay('week')">🖨 週間印刷</button>
+  </div>
+  <div class="day-layout">
+    <div class="day-main">
+      <div class="day-table-wrap">
+        <table class="day-table" id="day-table">
+          <thead>
+            <tr>
+              <th>元請</th><th>現場名</th><th>場所</th><th>工程</th><th>時間</th><th>トラック</th><th>メンバー</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="day-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="day-side">
+      <div class="side-panel">
+        <h3>👥 メンバー</h3>
+        <div id="member-drag-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="view-sites" class="view">
+  <div style="margin-bottom:12px;display:flex;gap:8px">
+    <button class="btn-sm" onclick="openAddSite()">＋ 現場追加</button>
+    <button class="btn-sm" id="site-back-btn" onclick="showSiteList()" style="display:none">← 一覧へ</button>
+  </div>
+  <div id="site-content"></div>
+</div>
+
+<div id="view-members" class="view">
+  <button class="btn-sm" onclick="addMember()" style="margin-bottom:12px">＋ メンバー追加</button>
+  <div class="member-manage-list" id="member-list"></div>
+  <div class="section-title" style="margin-top:20px">🚛 トラック管理</div>
+  <button class="btn-sm" onclick="addTruck()" style="margin-bottom:8px">＋ トラック追加</button>
+  <div class="truck-list" id="truck-list"></div>
+</div>
+
+<div id="view-search" class="view">
+  <div class="search-box">
+    <input type="search" id="search-input" placeholder="現場名・元請・場所・メンバー..." onkeydown="if(event.key==='Enter')doSearch()">
+    <button onclick="doSearch()">検索</button>
+  </div>
+  <div id="search-results"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="onFab()">＋</button>
+
+<!-- NAV -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="showView('home')" data-view="home">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>ホーム
+  </button>
+  <button class="nav-btn" onclick="showView('cal')" data-view="cal">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>カレンダー
+  </button>
+  <button class="nav-btn" onclick="showView('sites')" data-view="sites">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>現場
+  </button>
+  <button class="nav-btn" onclick="showView('members')" data-view="members">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>メンバー
+  </button>
+  <button class="nav-btn" onclick="showView('search')" data-view="search">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>検索
+  </button>
+</nav>
+
+<!-- MODAL: スケジュール追加/編集 -->
+<div class="modal-overlay hidden" id="modal-schedule">
+  <div class="modal">
+    <h3 id="modal-sch-title">工程追加</h3>
+    <div class="form-group">
+      <label>日付</label>
+      <input type="date" id="sch-date">
+    </div>
+    <div class="form-group">
+      <label>工程</label>
+      <div class="process-selector" id="sch-proc-sel"></div>
+    </div>
+    <div class="form-group">
+      <label>現場</label>
+      <select id="sch-site"></select>
+    </div>
+    <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <label>開始時間</label>
+        <input type="time" id="sch-time-s" value="08:00">
+      </div>
+      <div>
+        <label>終了時間</label>
+        <input type="time" id="sch-time-e" value="17:00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>トラック</label>
+      <select id="sch-truck"></select>
+    </div>
+    <div class="form-group">
+      <label>メモ</label>
+      <input type="text" id="sch-memo" placeholder="任意">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-schedule')">キャンセル</button>
+      <button class="btn-danger" id="sch-del-btn" onclick="deleteSchedule()" style="display:none">削除</button>
+      <button class="btn-primary" onclick="saveSchedule()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 現場追加/編集 -->
+<div class="modal-overlay hidden" id="modal-site">
+  <div class="modal">
+    <h3 id="modal-site-title">現場追加</h3>
+    <div class="form-group">
+      <label>元請</label>
+      <input type="text" id="site-client" placeholder="例: アーネストワン">
+    </div>
+    <div class="form-group">
+      <label>現場名</label>
+      <input type="text" id="site-name" placeholder="例: 平成町第2 1号棟">
+    </div>
+    <div class="form-group">
+      <label>場所（市区町村）</label>
+      <input type="text" id="site-location" placeholder="例: 土岐市">
+    </div>
+    <div class="form-group">
+      <label>住所（詳細）</label>
+      <input type="text" id="site-address" placeholder="Googleマップ用">
+    </div>
+    <div class="form-group">
+      <label>担当者</label>
+      <input type="text" id="site-manager">
+    </div>
+    <div class="form-group">
+      <label>電話番号</label>
+      <input type="tel" id="site-phone">
+    </div>
+    <div class="form-group">
+      <label>メモ</label>
+      <textarea id="site-memo" rows="2"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-site')">キャンセル</button>
+      <button class="btn-danger" id="site-del-btn" onclick="deleteSite()" style="display:none">削除</button>
+      <button class="btn-primary" onclick="saveSite()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+const STORAGE_KEY = 'nishijima_kouteikanri_v1';
+const PROCS = ['架','CAP','追加','是正','払','常用'];
+const PROC_COLORS = {架:'#757575',CAP:'#1565c0',追加:'#2e7d32',是正:'#c62828',払:'#bf360c',常用:'#6a1b9a'};
+let state = {
+  sites:[],members:[],trucks:[],schedules:[],
+  view:'home',calYear:0,calMonth:0,selectedDate:null,
+  editingSch:null,editingSite:null,editingSchProcess:'架'
+};
+
+// ===== STORAGE =====
+function loadState(){
+  const s=localStorage.getItem(STORAGE_KEY);
+  if(s){const d=JSON.parse(s);Object.assign(state,d);}
+  else{
+    state.members=[
+      {id:uid(),name:'テスト太郎',createdAt:Date.now()},
+      {id:uid(),name:'テスト次郎',createdAt:Date.now()},
+      {id:uid(),name:'テストA',createdAt:Date.now()},
+      {id:uid(),name:'テストB',createdAt:Date.now()},
+    ];
+    state.trucks=[{id:uid(),name:'トラックA',createdAt:Date.now()}];
+  }
+  const n=new Date();
+  state.calYear=n.getFullYear();state.calMonth=n.getMonth();
+  if(!state.selectedDate)state.selectedDate=toDateStr(n);
+}
+function saveState(){
+  const d={sites:state.sites,members:state.members,trucks:state.trucks,schedules:state.schedules};
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
+}
+
+// ===== UTIL =====
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2}
+function toDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function todayStr(){return toDateStr(new Date())}
+function tomorrowStr(){const d=new Date();d.setDate(d.getDate()+1);return toDateStr(d)}
+function formatDate(s){if(!s)return '';const[y,m,d]=s.split('-');const wd=['日','月','火','水','木','金','土'][new Date(s).getDay()];return y+'幼'�parseInt(m)+'月'+parseInt(d)+'日('+wd+')'}
+function getSite(id){return state.sites.find(s=>s.id===id)||null}
+function getMember(id){return state.members.find(m=>m.id===id)||null}
+function getTruck(id){return state.trucks.find(t=>t.id===id)||null}
+function getSchedules(dateStr){return state.schedules.filter(s=>s.date===dateStr&&s.status!=='archived')}
+function nextBusinessDay(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+1);
+  while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);
+  return toDateStr(d);
+}
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+// ===== NAVIGATION =====
+function showView(v){
+  state.view=v;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelector('[data-view="'+v+'"]')?.classList.add('active');
+  document.getElementById('fab').style.display=(v==='cal'||v==='sites'||v==='members')?'flex':'none';
+  if(v==='home')renderHome();
+  if(v==='cal')renderCal();
+  if(v==='sites')showSiteList();
+  if(v==='members')renderMembers();
+}
+function onFab(){
+  if(state.view==='cal')openAddSchedule();
+  else if(state.view==='sites')openAddSItE(/;
+  else if(state.view==='members')addMember();
+}
+
+// ===== HOME =====
+function renderHome(){
+  const today=todayStr(),tmr=tomorrowStr();
+  const todaySchs=getSchedules(today),tmrSchs=getSchedules(tmr);
+  const totalToday=todaySchs.length;
+  const totalMembers=new Set(todaySchs.flatMap(s=>s.memberIds||[])).size;
+  const unassigned=state.members.filter(m=>!todaySchs.some(s=>(s.memberIds||[]).includes(m.id))).length;
+  document.getElementById('home-stats').innerHTML=`
+    <div class="stat-card"><div class="num">${totalToday}</div><div class="lbl">今日の工程</div></div>
+    <div class="stat-card"><div class="num">${totalMembers}</div><div class="lbl">稼働人数</div></div>
+    <div class="stat-card"><div class="num">${unassigned}</div><div class="lbl">未割当</div></div>
+  `;
+  document.getElementById('today-list').innerHTML=renderScheduleList(todaySchs)||'<div class="empty">工程なし</div>';
+  document.getElementById('tomorrow-list').innerHTML=renderScheduleList(tmrSchs)||'<div class="empty">工程なし</div>';
+  document.getElementById('header-date').textContent=formatDate(today);
+}
+function renderScheduleList(schs){
+  return schs.map(s=>{
+    const site=getSite(s.siteId);
+    const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean).join('、');
+    const truck=getTruck(s.truckId);
+    return `<div class="schedule-row" onclick="openDayView('${s.date}')">
+      <span class="badge ${s.process}">${s.process}</span>
+      <div class="sr-main">
+        <div class="sr-title">${site?site.client+' '+site.name:'((現場未設定)'}</div>
+        <div class="sr-sub">${site?site.location:''} ${truck?'🚛'+truck.name:''}</div>
+        <div class="sr-members">${members?'👷 '+members:'メンバー未割当'}</div>
+      </div>
+      <div style="font-size:11px;color:var(--sub)">${s.timeStart||''}${s.timeEnd?'~'+s.timeEnd:''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== CALENDAR =====
+function changeMonth(d){state.calMonth+=d;if(state.calMonth>11){state.calMonth=0;state.calYear++;}if(state.calMonth<0){state.calMonth=11;state.calYear--;}renderCal();}
+function renderCal(){
+  const y=state.calYear,m=state.calMonth;
+  document.getElementById('cal-title').textContent=y+'年'+(m+1)+'月';
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const today=todayStr();
+  // Stats
+  const monthSchs=state.schedules.filter(s=>{
+    const d=new Date(s.date+'T00:00:00');
+    return d.getFullYear()===y&&d.getMonth()===m&&s.status!=='archived';
+  });
+  const counts={};
+  PROCS.forEach(p=>{counts[p]=monthSchs.filter(s=>s.process===p).length;});
+  document.getElementById('cal-stats').innerHTML=PROCS.map(p=>counts[p]>0?`<div class="cs-item ${p}">${p} ${counts[p]}件</div>`:'').join('');
+  // Grid
+  let html='';
+  // Prev month cells
+  const prevDays=new Date(y,m,0).getDate();
+  for(let i=0;i<firstDay;i++){
+    const d=prevDays-firstDay+i+1;
+    html+=`<div class="cal-cell other-month"><div class="cell-day">${d}</div></div>`;
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const schs=getSchedules(dateStr);
+    const isToday=dateStr===today;
+    const isSel=dateStr===state.selectedDate;
+    const cls=[isToday?'today':'',isSel?'selected':''].filter(Boolean).join(' ');
+    let cards='';
+    const maxShow=3;
+    schs.slice(0,maxShow).forEach(s=>{
+      const site=getSite(s.siteId);
+      const label=(site?site.name+' ':'')+s.process;
+      cards+=`<div class="cal-card ${s.process}" draggable="true" 
+        data-sch-id="${s.id}" data-date="${dateStr}"
+        onclick="event.stopPropagation();openEditSchedule('${s.id}')"
+        ondragstart="onCardDragStart(event,'${s.id}')"
+        title="${site?site.client+' '+site.name:''}">${label}</div>`;
+    });
+    if(schs.length>maxShow)cards+=`<div class="cal-more">+${schs.length-maxShow}件</div>`;
+    html+=`<div class="cal-cell ${cls}" data-date="${dateStr}"
+      onclick="onCellClick('${dateStr}')"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="onCardDrop(event,'${dateStr}')">
+      <div class="cell-day">${d}</div>${cards}</div>`;
+  }
+  // Next month cells
+  const totalCells=firstDay+daysInMonth;
+  const remaining=(7-totalCells%7)%7;
+  for(let i=1;i<=remaining;i++)html+=`<div class="cal-cell other-month"><div class="cell-day">${i}</div></div>`;
+  document.getElementById('cal-body').innerHTML=html;
+}
+function onCellClick(dateStr){
+  state.selectedDate=dateStr;
+  openDayView(dateStr);
+}
+function onCardDragStart(event,schId){
+  event.dataTransfer.setData('schId',schId);
+  event.target.classList.add('dragging');
+}
+function onCardDrop(event,dateStr){
+  event.preventDefault();
+  const schId=event.dataTransfer.getData('schId');
+  const sch=state.schedules.find(s=>s.id===schId);
+  if(sch){sch.date=dateStr;saveState();renderCal();toast('工程を移動しました');}
+  document.querySelectorAll('.cal-cell').forEach(c=>c.classList.remove('drag-over'));
+}
+
+// ===== DAY VIEW =====
+function openDayView(dateStr){
+  state.selectedDate=dateStr;
+  state.view='day';
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-day').classList.add('active');
+  document.getElementById('fab').style.display='none';
+  document.getElementById('day-title').textContent=formatDate(dateStr);
+  document.getElementById('print-title').textContent='📋 '+formatDate(dateStr)+'の工程表 ― 西島工業';
+  renderDayTable(dateStr);
+  renderMemberDragList(dateStr);
+}
+function showCal(){showView('cal');}
+function renderDayTable(dateStr){
+  const schs=getSchedules(dateStr);
+  if(!schs.length){document.getElementById('day-tbody').innerHTML='<tr><td colspan="8" class="empty">工程なし</td></tr>';return;}
+  document.getElementById('day-tbody').innerHTML=schs.map(s=>{
+    const site=getSite(s.siteId);
+    const truck=getTruck(s.truckId);
+    const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean);
+    const mapUrl=site&&site.address?`https://maps.google.com/?q=${encodeURIComponent(site.address)}`:'';
+    return `<tr>
+      <td>${site?site.client:'-'}</td>
+      <td style="font-weight:700">${site?site.name:'-'}</td>
+      <td>${site?`<span>${site.location}</span>${mapUrl?`<br><span class="map-link" onclick="window.open('${mapUrl}','_blank')">📍 地図</span>`:''}`:'-'}</td>
+      <td><span class="badge ${s.process}">${s.process}</span></td>
+      <td style="white-space:nowrap;font-size:12px">${s.timeStart||''}${s.timeEnd?'~'+s.timeEnd:''}</td>
+      <td>${truck?'🚛 '+truck.name:'-'}</td>
+      <td>
+        <div style="min-width:100px">
+          ${members.map(n=>`<span class="member-chip">${n}</span>`).join('')}
+          ${members.length?`<div style="font-size:11px;color:var(--sub);margin-top:3px">計${members.length}人</div>`:''}
+        </div>
+      </td>
+      <td><button class="btn-sm" onclick="openEditSchedule('${s.id}')">編集</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderMemberDragList(dateStr){
+  const schs=getSchedules(dateStr);
+  document.getElementById('member-drag-list').innerHTML=state.members.map(m=>{
+    const assigned=schs.filter(s=>(s.memberIds||[]).includes(m.id));
+    const warn=assigned.length>1?'<div class="double-book-warn">⚠ 複数現場</div>':'';
+    return `<div class="member-item" draggable="true"
+      ondragstart="event.dataTransfer.setData('memberId','${m.id}')"
+      onclick="quickAssignMenu('${m.id}','${dateStr}')">
+      <span class="drag-icon">⠿</span>
+      <div style="flex:1">
+        <div>${m.name}</div>
+        ${assigned.length?`<div style="font-size:10px;color:var(--cap)">${assigned.map(s=>`${getSite(s.siteId)?.name||'?'}(${s.process})`).join('/')}</div>`:''}
+      </div>${warn}
+    </div>`;
+  }).join('')||'<div class="empty">メンバーなし</div>';
+  // Make day table rows drop targets
+  setTimeout(()=>{
+    document.querySelectorAll('#day-tbody tr').forEach((tr,i)=>{
+      const sch=getSchedules(dateStr)[i];
+      if(!sch)return;
+      tr.addEventListener('dragover',e=>e.preventDefault());
+      tr.addEventListener('drop',e=>{
+        e.preventDefault();
+        const mId=e.dataTransfer.getData('memberId');
+        if(!mId)return;
+        if(!sch.memberIds)sch.memberIds=[];
+        if(!sch.memberIds.includes(mId)){
+          // Check double booking
+          const conflict=getSchedules(dateStr).filter(s=>s.id!==sch.id&&(s.memberIds||[]).includes(mId));
+          sch.memberIds.push(mId);
+          saveState();
+          renderDayTable(dateStr);
+          renderMemberDragList(dateStr);
+          if(conflict.length){const mn=getMember(mId);toast('⚠ '+mn?.name+' は別現場にも割当済');}
+          else toast(getMember(mId)?.name+' を割当しました');
+        }
+      });
+    });
+  },100);
+}
+function quickAssignMenu(memberId,dateStr){
+  const schs=getSchedules(dateStr);
+  if(!schs.length){toast('この日に工程がありません');return;}
+  if(schs.length===1){
+    const sch=schs[0];
+    if(!sch.memberIds)sch.memberIds=[];
+    if(sch.memberIds.includes(memberId)){
+      sch.memberIds=sch.memberIds.filter(id=>id!==memberId);
+      toast(getMember(memberId)?.name+' を解除');
+    }else{
+      sch.memberIds.push(memberId);
+      toast(getMember(memberId)?.name+' を割当');
+    }
+    saveState();renderDayTable(dateStr);renderMemberDragList(dateStr);
+  }else{
+    // If multiple schedules, show selection - for now assign to first unassigned
+    const member=getMember(memberId);
+    const targetSch=schs.find(s=>!(s.memberIds||[]).includes(memberId))||schs[0];
+    if(!targetSch.memberIds)targetSch.memberIds=[];
+    if(targetSch.memberIds.includes(memberId)){
+      targetSch.memberIds=targetSch.memberIds.filter(id=>id!==memberId);
+      toast(member?.name+' を解除');
+    }else{
+      targetSch.memberIds.push(memberId);
+      toast(member?.name+' を割当: '+(getSite(targetSch.siteId)?.name||''));
+    }
+    saveState();renderDayTable(dateStr);renderMemberDragList(dateStr);
+  }
+}
+
+// ===== SCHEDULE MODAL =====
+function openAddSchedule(){
+  state.editingSch=null;
+  state.editingSchProcess='架';
+  document.getElementById('modal-sch-title').textContent='工程追加';
+  document.getElementById('sch-date').value=state.selectedDate||todayStr();
+  document.getElementById('sch-del-btn').style.display='none';
+  document.getElementById('sch-memo').value='';
+  document.getElementById('sch-time-s').value='08:00';
+  document.getElementById('sch-time-e').value='17:00';
+  renderProcessSelector();
+  renderSiteSelector();
+  renderTruckSelector();
+  document.getElementById('modal-schedule').classList.remove('hidden');
+}
+function openEditSchedule(schId){
+  const sch=state.schedules.find(s=>s.id===schId);
+  if(!sch)return;
+  state.editingSch=schId;
+  state.editingSchProcess=sch.process;
+  document.getElementById('modal-sch-title').textContent='工程編集';
+  document.getElementById('sch-date').value=sch.date;
+  document.getElementById('sch-memo').value=sch.memo||'';
+  document.getElementById('sch-time-s').value=sch.timeStart||'08:00';
+  document.getElementById('sch-time-e').value=sch.timeEnd||'17:00';
+  document.getElementById('sch-del-btn').style.display='block';
+  renderProcessSelector();
+  renderSiteSelector(sch.siteId);
+  renderTruckSelector(sch.truckId);
+  document.getElementById('modal-schedule').classList.remove('hidden');
+}
+function renderProcessSelector(){
+  document.getElementById('sch-proc-sel').innerHTML=PROCS.map(p=>`
+    <div class="proc-opt ${p} ${p===state.editingSchProcess?'active':''}"
+      onclick="selectProcess('${p}')">${p}</div>`).join('');
+}
+function selectProcess(p){state.editingSchProcess=p;renderProcessSelector();}
+function renderSiteSelector(selId){
+  const el=document.getElementById('sch-site');
+  el.innerHTML='<option value="">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" ${s.id===selId?'selected':''}>${s.client} ${s.name}（${s.location}）</option>`).join('');
+}
+function renderTruckSelector(selId){
+  const el=document.getElementById('sch-truck');
+  el.innerHTML='<option value="">トラックなし</option>'+state.trucks.map(t=>`<option value="${t.id}" ${t.id===selId?'selected':''}>${t.name}</option>`).join('');
+}
+function saveSchedule(){
+  const date=document.getElementById('sch-date').value;
+  if(!date){toast('日付を入力してください');return;}
+  const siteId=document.getElementById('sch-site').value;
+  const truckId=document.getElementById('sch-truck').value;
+  if(state.editingSch){
+    const sch=state.schedules.find(s=>s.id===state.editingSch);
+    if(sch){
+      sch.date=date;sch.process=state.editingSchProcess;
+      sch.siteId=siteId;sch.truckId=truckId;
+      sch.timeStart=document.getElementById('sch-time-s').value;
+      sch.timeEnd=document.getElementById('sch-time-e').value;
+      sch.memo=document.getElementById('sch-memo').value;
+    }
+  }else{
+    state.schedules.push({
+      id:uid(),date,process:state.editingSchProcess,
+      siteId,truckId,
+      timeStart:document.getElementById('sch-time-s').value,
+      timeEnd:document.getElementById('sch-time-e').value,
+      memo:document.getElementById('sch-memo').value,
+      memberIds:[],status:'active',createdAt:Date.now()
+    });
+  }
+  saveState();closeModal('modal-schedule');
+  if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);}
+  else if(state.view==='cal')renderCal();
+  else renderHome();
+  toast('保存しました');
+}
+function deleteSchedule(){
+  if(!state.editingSch)return;
+  if(!confirm('この工程を削除しますか？'))return;
+  state.schedules=state.schedules.filter(s=>s.id!==state.editingSch);
+  saveState();closeModal('modal-schedule');
+  if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);}
+  else if(state.view==='cal')renderCal();
+  toast('削除しました');
+}
+
+// ===== RAIN DELAY =====
+function rainDelay(bulk){
+  if(bulk){
+    const today=todayStr();
+    const schs=getSchedules(today);
+    if(!schs.length){toast('今日の工程がありません');return;}
+    const next=nextBusinessDay(today);
+    schs.forEach(s=>s.date=next);
+    saveState();
+    if(state.view==='cal')renderCal();
+    else if(state.view==='day')openDayView(next);
+    toast('☔ '+schs.length+'件を'+next+'へ移動');
+  }else{
+    const dateStr=state.selectedDate;
+    if(!dateStr){toast('日付を選択してください');return;}
+    const schs=getSchedules(dateStr);
+    if(!schs.length){toast('この日の工程がありません');return;}
+    const next=nextBusinessDay(dateStr);
+    schs.forEach(s=>s.date=next);
+    saveState();renderCal();
+    toast('☔ '+schs.length+'件を'+next+'へ移動');
+  }
+}
+
+// ===== SITES =====
+function showSiteList(){
+  document.getElementById('site-back-btn').style.display='none';
+  if(!state.sites.length){
+    document.getElementById('site-content').innerHTML='<div class="empty">現場が登録されていません<br>右上の＋ボタンで追加</div>';
+    return;
+  }
+  document.getElementById('site-content').innerHTML='<div class="site-list">'+state.sites.map(s=>`
+    <div class="site-card" onclick="showSiteDetail('${s.id}')">
+      <h3>${s.client} ${s.name}</h3>
+      <div class="meta">
+        <span>📍 ${s.location}</span>
+        ${s.manager?`<span>👤 ${s.manager}</span>`:''}
+        ${s.phone?`<span>📞 ${s.phone}</span>`:''}
+      </div>
+      ${s.memo?`<div style="font-size:12px;color:var(--sub);margin-top:6px">${s.memo}</div>`:''}
+    </div>`).join('')+'</div>';
+}
+function showSiteDetail(siteId){
+  const s=getSite(siteId);if(!s)return;
+  document.getElementById('site-back-btn').style.display='inline-block';
+  const mapUrl=s.address?`https://maps.google.com/?q=${encodeURIComponent(s.address)}`:'';
+  const schs=state.schedules.filter(sc=>sc.siteId===siteId&&sc.status!=='archived');
+  document.getElementById('site-content').innerHTML=`
+    <div class="site-detail">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <h2>${s.client}<br>${s.name}</h2>
+        <button class="btn-sm" onclick="openEditSite('${siteId}')">編集</button>
+      </div>
+      <div class="site-info-grid">
+        <div class="info-item"><div class="lbl">場所</div>${s.location||'-'}</div>
+        <div class="info-item"><div class="lbl">担当</div>${s.manager||'-'}</div>
+        <div class="info-item"><div class="lbl">電話</div>${s.phone?`<a href="tel:${s.phone}">${s.phone}</a>`:'-'}</div>
+        <div class="info-item"><div class="lbl">住所</div>${s.address?`<span class="map-link" onclick="window.open('${mapUrl}','_blank')">📍 ${s.address}</span>`:'-'}</div>
+      </div>
+      ${s.memo?`<div style="font-size:13px;color:var(--sub);background:#f8f9fa;padding:10px;border-radius:8px;margin-bottom:12px">${s.memo}</div>`:''}
+      <div class="section-title">📁 現場資料フォルダー</div>
+      <div class="folder-btns">
+        ${'図面,写真,安全書類,見積,その他'.split(',').map(f=>`
+          <div class="folder-btn" onclick="openFolder('${siteId}','${f}')">
+            <span class="folder-icon">📁</span>${f}
+          </div>`).join('')}
+      </div>
+      <div class="section-title" style="margin-top:16px">📋 工程履歴</div>
+      <div>${schs.slice(-10).reverse().map(sc=>`
+        <div class="schedule-row" onclick="openDayView('${sc.date}')">
+          <span class="badge ${sc.process}">${sc.process}</span>
+          <div class="sr-main">
+            <div class="sr-title">${formatDate(sc.date)}</div>
+            <div class="sr-members">${(sc.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean).join('、')||'メンバー未割当'}</div>
+          </div>
+        </div>`).join('')||'<div class="empty">工程なし</div>'}
+      </div>
+    </div>`;
+}
+function openFolder(siteId,folderName){
+  toast('📁 '+folderName+' フォルダー（ファイョ管理はPC側で操作してください）');
+}
+function openAddSite(){
+  state.editingSite=null;
+  document.getElementById('modal-site-title').textContent='現場追加';
+  ['site-client','site-name','site-location','site-address','site-manager','site-phone','site-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('site-del-btn').style.display='none';
+  document.getElementById('modal-site').classList.remove('hidden');
+}
+function openEditSite(siteId){
+  const s=getSite(siteId);if(!s)return;
+  state.editingSite=siteId;
+  document.getElementById('modal-site-title').textContent='現場編集';
+  document.getElementById('site-client').value=s.client||'';
+  document.getElementById('site-name').value=s.name||'';
+  document.getElementById('site-location').value=s.location||'';
+  document.getElementById('site-address').value=s.address||'';
+  document.getElementById('site-manager').value=s.manager||'';
+  document.getElementById('site-phone').value=s.phone||'';
+  document.getElementById('site-memo').value=s.memo||'';
+  document.getElementById('site-del-btn').style.display='block';
+  document.getElementById('modal-site').classList.remove('hidden');
+}
+function saveSite(){
+  const name=document.getElementById('site-name').value.trim();
+  if(!name){toast('現場名を入力してください');return;}
+  const data={
+    client:document.getElementById('site-client').value.trim(),
+    name,location:document.getElementById('site-location').value.trim(),
+    address:document.getElementById('site-address').value.trim(),
+    manager:document.getElementById('site-manager').value.trim(),
+    phone:document.getElementById('site-phone').value.trim(),
+    memo:document.getElementById('site-memo').value.trim(),
+  };
+  if(state.editingSite){
+    const s=getSite(state.editingSite);if(s)Object.assign(s,data);
+  }else{
+    state.sites.push({id:uid(),...data,createdAt:Date.now()});
+  }
+  saveState();closeModal('modal-site');showSiteList();toast('保存しました');
+}
+function deleteSite(){
+  if(!state.editingSite)return;
+  if(!confirm('この現場を削除しますか？工程データは残ります。'))return;
+  state.sites=state.sites.filter(s=>s.id!==state.editingSite);
+  saveState();closeModal('modal-site');showSiteList();toast('削除しました');
+}
+
+// ===== MEMBERS =====
+function renderMembers(){
+  document.getElementById('member-list').innerHTML=state.members.map(m=>`
+    <div class="member-manage-row">
+      <span style="font-size:20px">👤</span>
+      <input type="text" value="${m.name}" onchange="updateMemberName('${m.id}',this.value)" placeholder="名前">
+      <button class="del-btn" onclick="removeMember('${m.id}')">削除</button>
+    </div>`).join('')||'<div class="empty">メンバーなし</div>';
+  document.getElementById('truck-list').innerHTML=state.trucks.map(t=>`
+    <div class="truck-row">
+      <span style="font-size:20px">🚛</span>
+      <input type="text" value="${t.name}" onchange="updateTruckName('${t.id}',this.value)" placeholder="トラック名">
+      <button class="del-btn" onclick="removeTruck('${t.id}')">削除</button>
+    </div>`).join('')||'<div class="empty">トラックなし</div>';
+}
+function addMember(){
+  state.members.push({id:uid(),name:'新しいメンバー',createdAt:Date.now()});
+  saveState();renderMembers();
+}
+function updateMemberName(id,name){
+  const m=getMember(id);if(m){m.name=name.trim();saveState();}
+}
+function removeMember(id){
+  if(!confirm('このメンバーを削除しますか？'))return;
+  state.members=state.members.filter(m=>m.id!==id);
+  state.schedules.forEach(s=>{s.memberIds=(s.memberIds||[]).filter(mid=>mid!==id);});
+  saveState();renderMembers();toast('削除しました');
+}
+function addTruck(){
+  state.trucks.push({id:uid(),name:'新しいトラック',createdAt:Date.now()});
+  saveState();renderMembers();
+}
+function updateTruckName(id,name){
+  const t=getTruck(id);if(t){t.name=name.trim();saveState();}
+}
+function removeTruck(id){
+  if(!confirm('このトラックを削除しますか？'))return;
+  state.trucks=state.trucks.filter(t=>t.id!==id);
+  saveState();renderMembers();toast('削除しました');
+}
+
+// ===== SEARCH =====
+function doSearch(){
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  if(!q){document.getElementById('search-results').innerHTML='';return;}
+  const cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);
+  const results=state.schedules.filter(s=>{
+    const d=new Date(s.date+'T00:00:00');
+    if(d<cutoff)return false;
+    const site=getSite(s.siteId);
+    const truck=getTruck(s.truckId);
+    const members=(s.memberIds||[]).map(id=>getMember(id)?.name||'');
+    const searchText=[
+      site?.client,site?.name,site?.location,site?.address,
+      s.process,s.memo,truck?.name,...members
+    ].join(' ').toLowerCase();
+    return searchText.includes(q);
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!results.length){document.getElementById('search-results').innerHTML='<div class="empty">該当なし</div>';return;}
+  document.getElementById('search-results').innerHTML=`
+    <div class="search-result">
+      <div style="padding:10px 16px;font-size:12px;color:var(--sub);border-bottom:1px solid var(--border)">${results.length}件見つかりました</div>
+      ${results.map(s=>{
+        const site=getSite(s.siteId);
+        const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean);
+        return `<div class="sr-row" onclick="openDayView('${s.date}')">
+          <div class="sr-date">${s.date.slice(5).replace('-','/')}</div>
+          <span class="badge ${s.process}">${s.process}</span>
+          <div class="sr-main">
+            <div class="sr-title">${site?site.client+' '+site.name:'(現場未設定)'}</div>
+            <div class="sr-sub">${site?site.location:''} ${members.length?'👷'+members.join('・'):''}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ===== PRINT =====
+function printDay(mode){
+  let title='';
+  if(mode==='today'){state.selectedDate=todayStr();title='今日の工程 '+formatDate(todayStr());}
+  else if(mode==='tomorrow'){state.selectedDate=tomorrowStr();title='明日の工程 '+formatDate(tomorrowStr());}
+  else{title='週間工程表';}
+  document.getElementById('print-title').textContent=title+' ― 西島工業';
+  if(mode!=='week')renderDayTable(state.selectedDate);
+  window.print();
+}
+
+// ===== MODAL =====
+function closeModal(id){
+  document.getElementById(id).classList.add('hidden');
+}
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+});
+
+// ===== INIT =====
+loadState();
+document.getElementById('fab').style.display='none';
+renderHome();
+</script>
+</body>
+</html>
