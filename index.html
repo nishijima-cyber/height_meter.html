@@ -20,39 +20,22 @@
       font-weight: bold;
       border-bottom: 2px solid #e94560;
     }
-    .step {
+    .desc {
       background: #16213e;
       margin: 12px;
       border-radius: 12px;
-      padding: 16px;
-    }
-    .step-title {
-      font-size: 15px;
-      font-weight: bold;
-      color: #e94560;
-      margin-bottom: 12px;
-    }
-    .step-title span {
-      background: #e94560;
-      color: #fff;
-      border-radius: 50%;
-      width: 24px; height: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      padding: 14px;
       font-size: 13px;
-      margin-right: 8px;
+      color: #aac4e0;
+      line-height: 1.8;
     }
+    .desc strong { color: #e94560; }
 
-    /* 写真エリア */
     .photo-area {
       position: relative;
       width: 100%;
-      background: #0a0a1a;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 10px;
-      min-height: 200px;
+      background: #000;
+      min-height: 240px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -60,16 +43,13 @@
     .photo-area img {
       width: 100%;
       display: block;
-      touch-action: none;
     }
     .photo-area .placeholder {
       color: #aac4e0;
-      font-size: 13px;
+      font-size: 14px;
       text-align: center;
-      padding: 20px;
+      padding: 40px 20px;
     }
-
-    /* 計測ライン */
     canvas {
       position: absolute;
       top: 0; left: 0;
@@ -77,388 +57,262 @@
       touch-action: none;
     }
 
-    /* ボタン */
+    .controls {
+      padding: 12px;
+    }
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       border: none;
-      border-radius: 10px;
-      font-size: 15px;
+      border-radius: 12px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .btn-red { background: #e94560; color: #fff; }
-    .btn-blue { background: #0f3460; color: #fff; border: 2px solid #e94560; }
     .btn-purple { background: #533483; color: #fff; }
     .btn-gray { background: transparent; color: #aac4e0; border: 1px solid #333; }
     .btn:disabled { opacity: 0.4; }
 
-    /* 入力 */
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .input-row label { font-size: 13px; color: #aac4e0; white-space: nowrap; }
-    .input-row input {
-      flex: 1;
-      background: #0f3460;
-      border: 1px solid #e94560;
-      border-radius: 8px;
+    .status {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
       color: #fff;
-      font-size: 18px;
-      padding: 8px;
       text-align: center;
-      outline: none;
+      margin-bottom: 10px;
+      font-weight: bold;
     }
-    .input-row span { font-size: 13px; color: #aac4e0; }
+    .status.done { color: #e94560; }
 
-    /* ピクセル表示 */
-    .px-display {
-      background: #0f3460;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      margin-bottom: 8px;
-      font-size: 13px;
-      color: #aac4e0;
-    }
-    .px-display strong { color: #e94560; font-size: 18px; }
-
-    /* 結果 */
     .result-box {
-      background: #0f3460;
+      background: #16213e;
       border-radius: 12px;
-      padding: 20px;
+      padding: 24px;
       text-align: center;
+      margin: 0 12px 12px;
       display: none;
-      margin: 12px;
     }
     .result-box.show { display: block; }
-    .result-box .label { font-size: 13px; color: #aac4e0; margin-bottom: 6px; }
-    .result-box .height { font-size: 56px; font-weight: bold; color: #e94560; line-height: 1; }
-    .result-box .unit { font-size: 20px; color: #aac4e0; }
-    .result-box .floors { margin-top: 10px; font-size: 15px; color: #aac4e0; }
-    .result-box .note { margin-top: 10px; font-size: 11px; color: #555; }
-
-    .status {
-      background: #0f3460;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 13px;
-      color: #aac4e0;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-
-    .hint { font-size: 12px; color: #666; margin-bottom: 8px; line-height: 1.5; }
+    .result-label { font-size: 14px; color: #aac4e0; margin-bottom: 8px; }
+    .result-height { font-size: 64px; font-weight: bold; color: #e94560; line-height: 1; }
+    .result-unit { font-size: 22px; color: #aac4e0; }
+    .result-sub { margin-top: 12px; font-size: 16px; color: #aac4e0; }
+    .result-note { margin-top: 10px; font-size: 12px; color: #555; }
   </style>
 </head>
 <body>
 
 <header>📐 建物高さ測定ツール</header>
 
-<!-- STEP 1: メジャー写真 -->
-<div class="step">
-  <div class="step-title"><span>1</span>メジャー写真（GL付近・500mm離れて撮影）</div>
-  <p class="hint">地面にメジャーを置き、500mmの距離から撮影してください。<br>撮影後、メジャーの0mmと1000mmの位置をタップして指定します。</p>
-
-  <div class="photo-area" id="scalePhotoArea">
-    <div class="placeholder">📷 写真を選択してください</div>
-    <img id="scaleImg" style="display:none;" />
-    <canvas id="scaleCanvas"></canvas>
-  </div>
-
-  <input type="file" id="scaleFile" accept="image/*" capture="environment" style="display:none;" onchange="loadScalePhoto(event)">
-  <button class="btn btn-red" onclick="document.getElementById('scaleFile').click()">📷 メジャー写真を撮影・選択</button>
-
-  <div class="status" id="scaleStatus">写真を撮影してください</div>
-
-  <div class="px-display" id="scalePxDisplay">
-    メジャー1000mmのピクセル数：<strong id="scalePx">未測定</strong>
-  </div>
-  <p class="hint">※写真上でメジャーの「0mm地点」と「1000mm地点」を順番にタップしてください</p>
-  <button class="btn btn-gray" onclick="resetScaleMeasure()">↩ メジャー測定リセット</button>
+<div class="desc">
+  <strong>使い方：</strong><br>
+  ① 建物全体が映るように写真を撮る<br>
+  ② 写真上の <strong>GL（地面）</strong> をタップ → 緑ピン<br>
+  ③ 壁の <strong>1mの位置</strong> をタップ → 黄ピン<br>
+  ④ 建物の <strong>最高部</strong> をタップ → 赤ピン<br>
+  ⑤ 自動で高さを計算
 </div>
 
-<!-- STEP 2: 建物写真 -->
-<div class="step">
-  <div class="step-title"><span>2</span>建物写真（5000mm離れて全体を撮影）</div>
-  <p class="hint">建物から5000mm（5m）離れて全体が入るように撮影してください。<br>撮影後、建物のGL（地面）と最高部をタップして指定します。</p>
-
-  <div class="input-row">
-    <label>撮影距離</label>
-    <input type="number" id="buildingDist" value="5000" min="100">
-    <span>mm</span>
-  </div>
-
-  <div class="photo-area" id="buildingPhotoArea">
-    <div class="placeholder">📷 写真を選択してください</div>
-    <img id="buildingImg" style="display:none;" />
-    <canvas id="buildingCanvas"></canvas>
-  </div>
-
-  <input type="file" id="buildingFile" accept="image/*" capture="environment" style="display:none;" onchange="loadBuildingPhoto(event)">
-  <button class="btn btn-blue" onclick="document.getElementById('buildingFile').click()">📷 建物写真を撮影・選択</button>
-
-  <div class="status" id="buildingStatus">写真を撮影してください</div>
-
-  <div class="px-display" id="buildingPxDisplay">
-    建物のピクセル数：<strong id="buildingPx">未測定</strong>
-  </div>
-  <p class="hint">※写真上で建物の「GL（地面）」と「最高部」を順番にタップしてください</p>
-  <button class="btn btn-gray" onclick="resetBuildingMeasure()">↩ 建物測定リセット</button>
+<div class="photo-area" id="photoArea">
+  <div class="placeholder" id="placeholder">📷 下のボタンから写真を撮影してください</div>
+  <img id="photo" style="display:none;" />
+  <canvas id="canvas"></canvas>
 </div>
 
-<!-- STEP 3: 計算 -->
-<div class="step">
-  <div class="step-title"><span>3</span>高さを計算</div>
-  <button class="btn btn-purple" id="btnCalc" onclick="calculate()">📐 高さを計算する</button>
+<div class="controls">
+  <div class="status" id="status">写真を撮影してください</div>
+
+  <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;" onchange="loadPhoto(event)">
+  <button class="btn btn-red" onclick="document.getElementById('fileInput').click()">
+    📷 写真を撮影する
+  </button>
+
+  <button class="btn btn-purple" id="btnReset" onclick="resetPins()" style="display:none;">
+    ↩ ピンをリセット
+  </button>
 </div>
 
-<!-- 結果 -->
 <div class="result-box" id="result">
-  <div class="label">推定建物高さ</div>
+  <div class="result-label">推定建物高さ</div>
   <div>
-    <span class="height" id="resultHeight">--</span>
-    <span class="unit"> mm</span>
+    <span class="result-height" id="resultHeight">--</span>
+    <span class="result-unit"> m</span>
   </div>
-  <div class="floors" id="resultFloors"></div>
-  <div class="note">※距離の目測誤差により実際と異なる場合があります</div>
+  <div class="result-sub" id="resultSub"></div>
+  <div class="result-note">※1mの基準点の精度により誤差が生じる場合があります</div>
 </div>
 
-<div style="padding:12px;">
+<div class="controls">
   <button class="btn btn-gray" onclick="resetAll()">🔄 全リセット</button>
 </div>
 
 <script>
-  // メジャー写真の計測
-  let scalePts = [];
-  let scalePxPerMm = null;
+  let pins = []; // 0:GL, 1:1m点, 2:TOP
+  let imgNaturalW = 1, imgNaturalH = 1;
+  let imgDisplayW = 1, imgDisplayH = 1;
 
-  // 建物写真の計測
-  let buildingPts = [];
-  let buildingPx = null;
+  const PIN_LABELS = ['GL', '1m', 'TOP'];
+  const PIN_COLORS = ['#00c864', '#ffcc00', '#e94560'];
+  const STATUS_MSGS = [
+    '📍 GL（地面）の位置をタップしてください',
+    '📍 壁の1m地点をタップしてください',
+    '📍 建物の最高部をタップしてください',
+    '✅ 計測完了！',
+  ];
 
-  // --- メジャー写真 ---
-  function loadScalePhoto(e) {
+  function loadPhoto(e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
-      const img = document.getElementById('scaleImg');
+      const img = document.getElementById('photo');
       img.src = ev.target.result;
       img.style.display = 'block';
-      document.querySelector('#scalePhotoArea .placeholder').style.display = 'none';
+      document.getElementById('placeholder').style.display = 'none';
+      document.getElementById('btnReset').style.display = 'block';
       img.onload = function() {
-        setupCanvas('scaleCanvas', 'scalePhotoArea', img, 'scale');
-        document.getElementById('scaleStatus').textContent = '0mmの位置をタップしてください';
-        scalePts = [];
-        scalePxPerMm = null;
-        document.getElementById('scalePx').textContent = '未測定';
+        imgNaturalW = img.naturalWidth;
+        imgNaturalH = img.naturalHeight;
+        const canvas = document.getElementById('canvas');
+        canvas.width = imgNaturalW;
+        canvas.height = imgNaturalH;
+        pins = [];
+        draw();
+        updateStatus();
       };
     };
     reader.readAsDataURL(file);
   }
 
-  function setupCanvas(canvasId, areaId, img, mode) {
-    const area = document.getElementById(areaId);
-    const canvas = document.getElementById(canvasId);
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    canvas.style.display = 'block';
+  // タップ処理
+  document.getElementById('canvas').addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    if (pins.length >= 3) return;
+    const touch = e.touches[0];
+    const pt = getCanvasPoint(touch.clientX, touch.clientY);
+    addPin(pt.x, pt.y);
+  }, { passive: false });
 
-    canvas.ontouchstart = function(e) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const x = (touch.clientX - rect.left) * scaleX;
-      const y = (touch.clientY - rect.top) * scaleY;
-      if (mode === 'scale') handleScaleTap(x, y, canvas);
-      else handleBuildingTap(x, y, canvas);
-    };
-    canvas.onclick = function(e) {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-      if (mode === 'scale') handleScaleTap(x, y, canvas);
-      else handleBuildingTap(x, y, canvas);
+  document.getElementById('canvas').addEventListener('click', function(e) {
+    if (pins.length >= 3) return;
+    const pt = getCanvasPoint(e.clientX, e.clientY);
+    addPin(pt.x, pt.y);
+  });
+
+  function getCanvasPoint(clientX, clientY) {
+    const canvas = document.getElementById('canvas');
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
   }
 
-  function handleScaleTap(x, y, canvas) {
-    if (scalePts.length >= 2) return;
-    scalePts.push({x, y});
-    drawScaleCanvas(canvas);
-
-    if (scalePts.length === 1) {
-      document.getElementById('scaleStatus').textContent = '次に1000mmの位置をタップしてください';
-    } else if (scalePts.length === 2) {
-      // ピクセル距離を計算
-      const dx = scalePts[1].x - scalePts[0].x;
-      const dy = scalePts[1].y - scalePts[0].y;
-      const px = Math.sqrt(dx*dx + dy*dy);
-      scalePxPerMm = px / 1000;
-      document.getElementById('scalePx').textContent = Math.round(px) + ' px';
-      document.getElementById('scaleStatus').textContent = '✅ メジャー測定完了！';
+  function addPin(x, y) {
+    pins.push({ x, y });
+    draw();
+    updateStatus();
+    if (pins.length === 3) {
+      setTimeout(calculate, 300);
     }
   }
 
-  function drawScaleCanvas(canvas) {
+  function draw() {
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    scalePts.forEach(function(pt, i) {
+
+    pins.forEach(function(pin, i) {
+      // 円
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 20, 0, Math.PI*2);
-      ctx.fillStyle = i === 0 ? 'rgba(0,200,100,0.8)' : 'rgba(233,69,96,0.8)';
+      ctx.arc(pin.x, pin.y, 28, 0, Math.PI * 2);
+      ctx.fillStyle = PIN_COLORS[i];
       ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 24px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(i === 0 ? '0' : '1000', pt.x, pt.y);
-    });
-    if (scalePts.length === 2) {
-      ctx.beginPath();
-      ctx.moveTo(scalePts[0].x, scalePts[0].y);
-      ctx.lineTo(scalePts[1].x, scalePts[1].y);
-      ctx.strokeStyle = 'rgba(233,69,96,0.8)';
+      ctx.strokeStyle = '#fff';
       ctx.lineWidth = 4;
       ctx.stroke();
-    }
-  }
 
-  function resetScaleMeasure() {
-    scalePts = [];
-    scalePxPerMm = null;
-    document.getElementById('scalePx').textContent = '未測定';
-    document.getElementById('scaleStatus').textContent = '0mmの位置をタップしてください';
-    const canvas = document.getElementById('scaleCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  // --- 建物写真 ---
-  function loadBuildingPhoto(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = document.getElementById('buildingImg');
-      img.src = ev.target.result;
-      img.style.display = 'block';
-      document.querySelector('#buildingPhotoArea .placeholder').style.display = 'none';
-      img.onload = function() {
-        setupCanvas('buildingCanvas', 'buildingPhotoArea', img, 'building');
-        document.getElementById('buildingStatus').textContent = 'GLの位置をタップしてください';
-        buildingPts = [];
-        buildingPx = null;
-        document.getElementById('buildingPx').textContent = '未測定';
-      };
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleBuildingTap(x, y, canvas) {
-    if (buildingPts.length >= 2) return;
-    buildingPts.push({x, y});
-    drawBuildingCanvas(canvas);
-
-    if (buildingPts.length === 1) {
-      document.getElementById('buildingStatus').textContent = '次に建物の最高部をタップしてください';
-    } else if (buildingPts.length === 2) {
-      const dx = buildingPts[1].x - buildingPts[0].x;
-      const dy = buildingPts[1].y - buildingPts[0].y;
-      buildingPx = Math.sqrt(dx*dx + dy*dy);
-      document.getElementById('buildingPx').textContent = Math.round(buildingPx) + ' px';
-      document.getElementById('buildingStatus').textContent = '✅ 建物測定完了！';
-    }
-  }
-
-  function drawBuildingCanvas(canvas) {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    buildingPts.forEach(function(pt, i) {
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 20, 0, Math.PI*2);
-      ctx.fillStyle = i === 0 ? 'rgba(0,200,100,0.8)' : 'rgba(233,69,96,0.8)';
-      ctx.fill();
+      // ラベル
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 20px sans-serif';
+      ctx.font = 'bold 28px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(i === 0 ? 'GL' : 'TOP', pt.x, pt.y);
+      ctx.fillText(PIN_LABELS[i], pin.x, pin.y);
+
+      // GL〜TOPの線
+      if (i > 0) {
+        ctx.beginPath();
+        ctx.setLineDash([10, 8]);
+        ctx.moveTo(pins[i-1].x, pins[i-1].y);
+        ctx.lineTo(pin.x, pin.y);
+        ctx.strokeStyle = PIN_COLORS[i];
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     });
-    if (buildingPts.length === 2) {
-      ctx.beginPath();
-      ctx.moveTo(buildingPts[0].x, buildingPts[0].y);
-      ctx.lineTo(buildingPts[1].x, buildingPts[1].y);
-      ctx.strokeStyle = 'rgba(233,69,96,0.8)';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-    }
   }
 
-  function resetBuildingMeasure() {
-    buildingPts = [];
-    buildingPx = null;
-    document.getElementById('buildingPx').textContent = '未測定';
-    document.getElementById('buildingStatus').textContent = 'GLの位置をタップしてください';
-    const canvas = document.getElementById('buildingCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function updateStatus() {
+    const el = document.getElementById('status');
+    el.textContent = STATUS_MSGS[pins.length] || STATUS_MSGS[3];
+    el.className = pins.length >= 3 ? 'status done' : 'status';
   }
 
-  // --- 計算 ---
   function calculate() {
-    if (!scalePxPerMm) {
-      alert('メジャー写真のピクセルを測定してください');
-      return;
-    }
-    if (!buildingPx) {
-      alert('建物写真のピクセルを測定してください');
-      return;
-    }
+    // GLとTOPのy座標差 = 建物全体のピクセル
+    const glY  = pins[0].y;
+    const oneM = pins[1].y;
+    const topY = pins[2].y;
 
-    const scaleDist = 500; // メジャー撮影距離mm
-    const buildingDist = parseFloat(document.getElementById('buildingDist').value);
-    if (!buildingDist || buildingDist <= 0) {
-      alert('建物の撮影距離を入力してください');
+    // 1mのピクセル数（GL〜1m点）
+    const oneMpx = Math.abs(glY - oneM);
+    if (oneMpx === 0) {
+      alert('GLと1m点が同じ位置です。正しくタップしてください。');
       return;
     }
 
-    // 距離比
-    const distRatio = buildingDist / scaleDist;
+    // 建物全体のピクセル数（GL〜TOP）
+    const buildingPx = Math.abs(glY - topY);
 
-    // 建物高さ = 建物ピクセル ÷ (スケールpx/mm) × 距離比
-    const heightMm = (buildingPx / (scalePxPerMm * 1000)) * 1000 * distRatio;
-
-    const heightRounded = Math.round(heightMm);
-    const heightM = (heightMm / 1000).toFixed(2);
-    const floors = Math.round(heightMm / 3000);
+    // 高さ = (建物px ÷ 1mのpx) × 1m
+    const heightM = buildingPx / oneMpx;
+    const heightMm = Math.round(heightM * 1000);
+    const heightRounded = Math.round(heightM * 10) / 10;
+    const floors = Math.round(heightM / 3);
 
     document.getElementById('resultHeight').textContent = heightRounded;
-    document.getElementById('resultFloors').textContent =
-      `= 約 ${heightM}m ／ 約 ${floors} 階建て相当`;
+    document.getElementById('resultSub').textContent =
+      `= ${heightMm} mm ／ 約 ${floors} 階建て相当`;
     document.getElementById('result').classList.add('show');
   }
 
-  function resetAll() {
-    resetScaleMeasure();
-    resetBuildingMeasure();
-    document.getElementById('scaleImg').style.display = 'none';
-    document.getElementById('buildingImg').style.display = 'none';
-    document.querySelector('#scalePhotoArea .placeholder').style.display = 'block';
-    document.querySelector('#buildingPhotoArea .placeholder').style.display = 'block';
+  function resetPins() {
+    pins = [];
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById('result').classList.remove('show');
-    scalePxPerMm = null;
-    buildingPx = null;
+    updateStatus();
+  }
+
+  function resetAll() {
+    pins = [];
+    document.getElementById('photo').style.display = 'none';
+    document.getElementById('placeholder').style.display = 'block';
+    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('result').classList.remove('show');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('status').textContent = '写真を撮影してください';
+    document.getElementById('status').className = 'status';
+    document.getElementById('fileInput').value = '';
   }
 </script>
 
