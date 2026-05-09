@@ -298,7 +298,34 @@
     document.getElementById('btnStart').disabled = true;
     document.getElementById('btnStart').textContent = '起動中...';
 
-    // カメラ起動
+    // ① まずセンサー許可（ユーザージェスチャー直後に呼ぶ）
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+          sensorActive = true;
+        } else {
+          updateStatus('⚠️ センサーの許可が必要です。設定から許可してください。');
+          document.getElementById('btnStart').disabled = false;
+          document.getElementById('btnStart').textContent = '📷 カメラ＆センサーを起動する';
+          return;
+        }
+      } catch(e) {
+        updateStatus('⚠️ センサーエラー。もう一度ボタンを押してください。');
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStart').textContent = '📷 カメラ＆センサーを起動する';
+        return;
+      }
+    } else if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', handleOrientation);
+      sensorActive = true;
+    } else {
+      sensorActive = false;
+    }
+
+    // ② カメラ起動
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
@@ -315,34 +342,9 @@
       document.getElementById('noCameraMsg').textContent = '⚠️ カメラなし。センサーのみで動作します。';
     }
 
-    // センサー起動
-    if (typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const res = await DeviceOrientationEvent.requestPermission();
-        if (res === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation);
-          sensorActive = true;
-        } else {
-          updateStatus('⚠️ センサーの許可が必要です。設定から許可してください。');
-          document.getElementById('btnStart').disabled = false;
-          document.getElementById('btnStart').textContent = '📷 カメラ＆センサーを起動する';
-          return;
-        }
-      } catch(e) {
-        updateStatus('センサーエラー: ' + e.message);
-        return;
-      }
-    } else if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation);
-      sensorActive = true;
-    } else {
-      sensorActive = false;
-    }
-
     document.getElementById('btnStart').textContent = '✅ 起動完了';
     document.getElementById('btnBase').disabled = false;
-    updateStatus('起動完了！カメラの照準を建物の足元に合わせて「足元測定」を押してください。');
+    updateStatus('起動完了！照準を建物の足元に合わせて「足元測定」を押してください。');
   }
 
   function handleOrientation(event) {
