@@ -453,11 +453,11 @@ function saveState(){
 }
 
 // ===== UTIL =====
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function toDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function todayStr(){return toDateStr(new Date())}
 function tomorrowStr(){const d=new Date();d.setDate(d.getDate()+1);return toDateStr(d)}
-function formatDate(s){if(!s)return '';const[y,m,d]=s.split('-');const wd=['日','月','火','水','木','金','土'][new Date(s).getDay()];return y+'幼'�parseInt(m)+'月'+parseInt(d)+'日('+wd+')'}
+function formatDate(s){if(!s)return '';const[y,m,d]=s.split('-');const wd=['日','月','火','水','木','金','土'][new Date(s).getDay()];return y+'年'+parseInt(m)+'月'+parseInt(d)+'日('+wd+')'}
 function getSite(id){return state.sites.find(s=>s.id===id)||null}
 function getMember(id){return state.members.find(m=>m.id===id)||null}
 function getTruck(id){return state.trucks.find(t=>t.id===id)||null}
@@ -488,7 +488,7 @@ function showView(v){
 }
 function onFab(){
   if(state.view==='cal')openAddSchedule();
-  else if(state.view==='sites')openAddSItE(/;
+  else if(state.view==='sites')openAddSite();
   else if(state.view==='members')addMember();
 }
 
@@ -516,7 +516,7 @@ function renderScheduleList(schs){
     return `<div class="schedule-row" onclick="openDayView('${s.date}')">
       <span class="badge ${s.process}">${s.process}</span>
       <div class="sr-main">
-        <div class="sr-title">${site?site.client+' '+site.name:'((現場未設定)'}</div>
+        <div class="sr-title">${site?site.client+' '+site.name:'(現場未設定)'}</div>
         <div class="sr-sub">${site?site.location:''} ${truck?'🚛'+truck.name:''}</div>
         <div class="sr-members">${members?'👷 '+members:'メンバー未割当'}</div>
       </div>
@@ -870,7 +870,7 @@ function showSiteDetail(siteId){
     </div>`;
 }
 function openFolder(siteId,folderName){
-  toast('📁 '+folderName+' フォルダー（ファイョ管理はPC側で操作してください）');
+  toast('📁 '+folderName+' フォルダー（ファイル管理はPC側で操作してください）');
 }
 function openAddSite(){
   state.editingSite=null;
