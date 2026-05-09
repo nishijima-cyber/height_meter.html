@@ -256,8 +256,11 @@
   <div class="status" id="status">まず「カメラ＆センサーを起動」を押してください。</div>
 
   <div class="measure-section">
-    <button class="btn btn-start" id="btnStart" onclick="startAll()">
-      📷 カメラ＆センサーを起動する
+    <button class="btn btn-start" id="btnSensor" onclick="startSensor()">
+      🔓 ① センサーを許可する
+    </button>
+    <button class="btn" id="btnCamera" onclick="startCamera()" style="background:#0f3460;color:#fff;border:2px solid #e94560;">
+      📷 ② カメラを起動する
     </button>
     <button class="btn btn-base" id="btnBase" onclick="measureBase()" disabled>
       <span class="step-badge">2</span>照準を足元に合わせて測定
@@ -294,38 +297,41 @@
     document.getElementById('status').textContent = msg;
   }
 
-  async function startAll() {
-    document.getElementById('btnStart').disabled = true;
-    document.getElementById('btnStart').textContent = '起動中...';
-
-    // ① まずセンサー許可（ユーザージェスチャー直後に呼ぶ）
+  // センサー許可（iOSはawaitなしで直接呼ぶ）
+  function startSensor() {
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const res = await DeviceOrientationEvent.requestPermission();
+      DeviceOrientationEvent.requestPermission().then(function(res) {
         if (res === 'granted') {
           window.addEventListener('deviceorientation', handleOrientation);
           sensorActive = true;
+          document.getElementById('btnSensor').textContent = '✅ センサーOK';
+          document.getElementById('btnSensor').disabled = true;
+          updateStatus('センサーOK！次に②カメラを起動してください。');
         } else {
-          updateStatus('⚠️ センサーの許可が必要です。設定から許可してください。');
-          document.getElementById('btnStart').disabled = false;
-          document.getElementById('btnStart').textContent = '📷 カメラ＆センサーを起動する';
-          return;
+          updateStatus('⚠️ センサーが拒否されました。設定から許可してください。');
         }
-      } catch(e) {
-        updateStatus('⚠️ センサーエラー。もう一度ボタンを押してください。');
-        document.getElementById('btnStart').disabled = false;
-        document.getElementById('btnStart').textContent = '📷 カメラ＆センサーを起動する';
-        return;
-      }
+      }).catch(function(e) {
+        updateStatus('⚠️ センサーエラー: ' + e.message);
+      });
     } else if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', handleOrientation);
       sensorActive = true;
+      document.getElementById('btnSensor').textContent = '✅ センサーOK';
+      document.getElementById('btnSensor').disabled = true;
+      updateStatus('センサーOK！次に②カメラを起動してください。');
     } else {
       sensorActive = false;
+      document.getElementById('btnSensor').textContent = '⚠️ センサーなし';
+      document.getElementById('btnSensor').disabled = true;
+      updateStatus('センサーなし。次に②カメラを起動してください。');
     }
+  }
 
-    // ② カメラ起動
+  // カメラ起動
+  async function startCamera() {
+    document.getElementById('btnCamera').disabled = true;
+    document.getElementById('btnCamera').textContent = '起動中...';
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
@@ -338,11 +344,11 @@
       document.getElementById('crosshair').style.display = 'block';
       document.getElementById('cameraLabel').style.display = 'block';
       document.getElementById('cameraAngle').style.display = 'block';
+      document.getElementById('btnCamera').textContent = '✅ カメラOK';
     } catch(e) {
       document.getElementById('noCameraMsg').textContent = '⚠️ カメラなし。センサーのみで動作します。';
+      document.getElementById('btnCamera').textContent = '⚠️ カメラなし';
     }
-
-    document.getElementById('btnStart').textContent = '✅ 起動完了';
     document.getElementById('btnBase').disabled = false;
     updateStatus('起動完了！照準を建物の足元に合わせて「足元測定」を押してください。');
   }
