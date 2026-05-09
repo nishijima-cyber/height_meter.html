@@ -287,6 +287,10 @@ input,select,textarea{font-family:inherit;outline:none}
         <h3>👥 メンバー</h3>
         <div id="member-drag-list"></div>
       </div>
+      <div class="side-panel" style="margin-top:12px">
+        <h3>🚛 トラック</h3>
+        <div id="truck-drag-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -325,7 +329,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <li>📊 <strong>統計表示</strong>：今日の工程数・稼働人数・未割当人数を表示</li>
         <li>📋 <strong>今日の工程</strong>：今日の全工程を一覧表示</li>
         <li>📋 <strong>明日の工程</strong>：明日の全工程を一覧表示</li>
-        <li>工程をタップすると日ビューに移動</li>
+        <li>工程をタップすると詳細ビューに移動</li>
       </ul>
     </div>
 
@@ -334,9 +338,10 @@ input,select,textarea{font-family:inherit;outline:none}
       <ul style="color:var(--sub);line-height:1.6">
         <li>🗓️ <strong>月表示</strong>：工程をカレンダー形式で確認</li>
         <li>🔄 <strong>ドラッグ移動</strong>：工程カードをドラッグして日付を変更</li>
-        <li>📋 <strong>ドラッグコピー</strong>：Ctrlキー（MacはCmdキー）を押しながらドラッグでコピー</li>
+        <li>📋 <strong>ドラッグコピー</strong>：Ctrlキー（MacはCmdキー）を押しながらドラッグで工程をコピー</li>
         <li>🌧️ <strong>雨天延期</strong>：選択日または全工程を翌営業日に延期</li>
         <li>＋ボタンで新規工程追加</li>
+        <li>工程カードをクリックで編集</li>
       </ul>
     </div>
 
@@ -346,9 +351,11 @@ input,select,textarea{font-family:inherit;outline:none}
         <li>📍 <strong>現場一覧</strong>：登録済みの現場を表示</li>
         <li>＋ボタンで新規現場追加</li>
         <li>現場カードをタップで詳細表示</li>
-        <li>📁 <strong>現場資料</strong>：図面・写真・安全書類・見積・その他フォルダー</li>
-        <li>フォルダーボタンをクリックしてファイルをアップロード</li>
-        <li>📥ダウンロード・🗑️削除が可能</li>
+        <li>📁 <strong>現場資料フォルダー</strong>：図面・写真・安全書類・見積・その他の5つのフォルダー</li>
+        <li>🗂️ <strong>ファイルアップロード</strong>：フォルダーボタンをクリックしてファイルをアップロード</li>
+        <li>📥 <strong>ファイル管理</strong>：アップロードしたファイルをダウンロード・削除可能</li>
+        <li>💾 <strong>自動保存</strong>：ファイルはブラウザ内にBase64形式で保存</li>
+        <li>📍 <strong>地図連携</strong>：現場住所からGoogleマップを開く</li>
       </ul>
     </div>
 
@@ -358,7 +365,8 @@ input,select,textarea{font-family:inherit;outline:none}
         <li>👤 <strong>メンバー一覧</strong>：作業メンバーの管理</li>
         <li>＋ボタンで新規メンバー追加</li>
         <li>🚛 <strong>トラック管理</strong>：使用トラックの管理</li>
-        <li>名前をクリックして編集</li>
+        <li>名前をクリックして編集・削除</li>
+        <li>⚠️ <strong>重複警告</strong>：同じメンバーが複数現場に割当済みの場合は警告表示</li>
       </ul>
     </div>
 
@@ -367,7 +375,17 @@ input,select,textarea{font-family:inherit;outline:none}
       <ul style="color:var(--sub);line-height:1.6">
         <li>現場名・元請・場所・メンバー名で検索</li>
         <li>過去1年分の工程データを検索</li>
+        <li>Enterキーで検索実行</li>
         <li>検索結果から日ビューに移動可能</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">📚 ヘルプ</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>📖 <strong>操作説明</strong>：この画面で全機能の使い方を確認</li>
+        <li>🎯 <strong>ショートカット</strong>：便利なキーボードショートカット一覧</li>
+        <li>💡 <strong>便利機能</strong>：PWA・印刷・自動保存などの機能説明</li>
       </ul>
     </div>
 
@@ -375,25 +393,41 @@ input,select,textarea{font-family:inherit;outline:none}
       <h3 style="color:var(--text);margin-bottom:12px">💡 便利機能</h3>
       <ul style="color:var(--sub);line-height:1.6">
         <li>📱 <strong>PWA対応</strong>：ホーム画面に追加してアプリのように使用</li>
-        <li>💾 <strong>自動保存</strong>：データはブラウザに自動保存</li>
+        <li>💾 <strong>自動保存</strong>：データはブラウザのローカルストレージに自動保存</li>
         <li>🖨️ <strong>印刷対応</strong>：日ビュー・週間ビューを印刷可能</li>
         <li>📍 <strong>地図連携</strong>：現場住所からGoogleマップを開く</li>
+        <li>🔄 <strong>オフライン対応</strong>：インターネット不要で使用可能</li>
+        <li>📊 <strong>統計表示</strong>：ホーム画面でリアルタイムの統計情報</li>
       </ul>
     </div>
 
     <div style="margin-bottom:24px">
-      <h3 style="color:var(--text);margin-bottom:12px">🎯 ショートカット</h3>
+      <h3 style="color:var(--text);margin-bottom:12px">🎯 ショートカットキー</h3>
       <ul style="color:var(--sub);line-height:1.6">
-        <li>Enterキー：検索実行</li>
-        <li>Ctrl+ドラッグ：工程コピー（Windows）</li>
-        <li>Cmd+ドラッグ：工程コピー（Mac）</li>
+        <li><kbd>Enter</kbd>：検索実行</li>
+        <li><kbd>Ctrl</kbd> + ドラッグ：工程コピー（Windows）</li>
+        <li><kbd>Cmd</kbd> + ドラッグ：工程コピー（Mac）</li>
+        <li>工程カードクリック：編集モード</li>
+        <li>メンバー名クリック：クイック割当</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <h3 style="color:var(--text);margin-bottom:12px">📋 日ビュー操作</h3>
+      <ul style="color:var(--sub);line-height:1.6">
+        <li>📅 <strong>日付表示</strong>：選択した日の全工程を表示</li>
+        <li>👥 <strong>メンバー割当</strong>：メンバーをドラッグして工程に割当</li>
+        <li>🖨️ <strong>印刷機能</strong>：今日・明日・週間の工程表を印刷</li>
+        <li>＋ボタンで新規工程追加</li>
+        <li>工程行をクリックで編集</li>
       </ul>
     </div>
 
     <div style="padding:16px;background:#f8f9fa;border-radius:8px;margin-top:24px">
       <p style="margin:0;color:var(--sub);font-size:14px;text-align:center">
         📞 ご質問・ご要望は開発者まで<br>
-        <strong>西島工業 工程管理システム</strong>
+        <strong>西島工業 工程管理システム</strong><br>
+        <small>バージョン: 1.0.0 | 更新日: 2026年5月9日</small>
       </p>
     </div>
   </div>
@@ -452,7 +486,7 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="form-group">
       <label>トラック</label>
-      <select id="sch-truck"></select>
+      <div id="sch-truck-selector" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto"></div>
     </div>
     <div class="form-group">
       <label>メモ</label>
@@ -601,12 +635,13 @@ function renderScheduleList(schs){
   return schs.map(s=>{
     const site=getSite(s.siteId);
     const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean).join('、');
-    const truck=getTruck(s.truckId);
+    const trucks=(s.truckIds||[]).map(id=>getTruck(id)?.name).filter(Boolean);
+    const truckText=trucks.length?`🚛${trucks.join('・')}`:'';
     return `<div class="schedule-row" onclick="openDayView('${s.date}')">
       <span class="badge ${s.process}">${s.process}</span>
       <div class="sr-main">
         <div class="sr-title">${site?site.client+' '+site.name:'(現場未設定)'}</div>
-        <div class="sr-sub">${site?site.location:''} ${truck?'🚛'+truck.name:''}</div>
+        <div class="sr-sub">${site?site.location:''} ${truckText}</div>
         <div class="sr-members">${members?'👷 '+members:'メンバー未割当'}</div>
       </div>
       <div style="font-size:11px;color:var(--sub)">${s.timeStart||''}${s.timeEnd?'~'+s.timeEnd:''}</div>
@@ -712,6 +747,7 @@ function openDayView(dateStr){
   document.getElementById('print-title').textContent='📋 '+formatDate(dateStr)+'の工程表 ― 西島工業';
   renderDayTable(dateStr);
   renderMemberDragList(dateStr);
+  renderTruckDragList(dateStr);
 }
 function showCal(){showView('cal');}
 function renderDayTable(dateStr){
@@ -719,7 +755,7 @@ function renderDayTable(dateStr){
   if(!schs.length){document.getElementById('day-tbody').innerHTML='<tr><td colspan="8" class="empty">工程なし</td></tr>';return;}
   document.getElementById('day-tbody').innerHTML=schs.map(s=>{
     const site=getSite(s.siteId);
-    const truck=getTruck(s.truckId);
+    const trucks=(s.truckIds||[]).map(id=>getTruck(id)?.name).filter(Boolean);
     const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean);
     const mapUrl=site&&site.address?`https://maps.google.com/?q=${encodeURIComponent(site.address)}`:'';
     return `<tr>
@@ -728,7 +764,12 @@ function renderDayTable(dateStr){
       <td>${site?`<span>${site.location}</span>${mapUrl?`<br><span class="map-link" onclick="window.open('${mapUrl}','_blank')">📍 地図</span>`:''}`:'-'}</td>
       <td><span class="badge ${s.process}">${s.process}</span></td>
       <td style="white-space:nowrap;font-size:12px">${s.timeStart||''}${s.timeEnd?'~'+s.timeEnd:''}</td>
-      <td>${truck?'🚛 '+truck.name:'-'}</td>
+      <td>
+        <div style="min-width:80px">
+          ${trucks.map(n=>`<span class="member-chip" style="background:#e8f5e9;color:#2e7d32">🚛 ${n}</span>`).join('')}
+          ${trucks.length?`<div style="font-size:11px;color:var(--sub);margin-top:3px">計${trucks.length}台</div>`:''}
+        </div>
+      </td>
       <td>
         <div style="min-width:100px">
           ${members.map(n=>`<span class="member-chip">${n}</span>`).join('')}
@@ -754,7 +795,7 @@ function renderMemberDragList(dateStr){
       </div>${warn}
     </div>`;
   }).join('')||'<div class="empty">メンバーなし</div>';
-  // Make day table rows drop targets
+  // Make day table rows drop targets for members
   setTimeout(()=>{
     document.querySelectorAll('#day-tbody tr').forEach((tr,i)=>{
       const sch=getSchedules(dateStr)[i];
@@ -774,6 +815,42 @@ function renderMemberDragList(dateStr){
           renderMemberDragList(dateStr);
           if(conflict.length){const mn=getMember(mId);toast('⚠ '+mn?.name+' は別現場にも割当済');}
           else toast(getMember(mId)?.name+' を割当しました');
+        }
+      });
+    });
+  },100);
+}
+function renderTruckDragList(dateStr){
+  const schs=getSchedules(dateStr);
+  document.getElementById('truck-drag-list').innerHTML=state.trucks.map(t=>{
+    const assigned=schs.filter(s=>(s.truckIds||[]).includes(t.id));
+    return `<div class="member-item" draggable="true"
+      ondragstart="event.dataTransfer.setData('truckId','${t.id}')"
+      onclick="quickAssignTruckMenu('${t.id}','${dateStr}')">
+      <span class="drag-icon">🚛</span>
+      <div style="flex:1">
+        <div>${t.name}</div>
+        ${assigned.length?`<div style="font-size:10px;color:#bf360c">${assigned.map(s=>`${getSite(s.siteId)?.name||'?'}(${s.process})`).join('/')}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty">トラックなし</div>';
+  // Make day table rows drop targets for trucks
+  setTimeout(()=>{
+    document.querySelectorAll('#day-tbody tr').forEach((tr,i)=>{
+      const sch=getSchedules(dateStr)[i];
+      if(!sch)return;
+      tr.addEventListener('dragover',e=>e.preventDefault());
+      tr.addEventListener('drop',e=>{
+        e.preventDefault();
+        const tId=e.dataTransfer.getData('truckId');
+        if(!tId)return;
+        if(!sch.truckIds)sch.truckIds=[];
+        if(!sch.truckIds.includes(tId)){
+          sch.truckIds.push(tId);
+          saveState();
+          renderDayTable(dateStr);
+          renderTruckDragList(dateStr);
+          toast(getTruck(tId)?.name+' を割当しました');
         }
       });
     });
@@ -808,6 +885,35 @@ function quickAssignMenu(memberId,dateStr){
     saveState();renderDayTable(dateStr);renderMemberDragList(dateStr);
   }
 }
+function quickAssignTruckMenu(truckId,dateStr){
+  const schs=getSchedules(dateStr);
+  if(!schs.length){toast('この日に工程がありません');return;}
+  if(schs.length===1){
+    const sch=schs[0];
+    if(!sch.truckIds)sch.truckIds=[];
+    if(sch.truckIds.includes(truckId)){
+      sch.truckIds=sch.truckIds.filter(id=>id!==truckId);
+      toast(getTruck(truckId)?.name+' を解除');
+    }else{
+      sch.truckIds.push(truckId);
+      toast(getTruck(truckId)?.name+' を割当');
+    }
+    saveState();renderDayTable(dateStr);renderTruckDragList(dateStr);
+  }else{
+    // If multiple schedules, assign to first unassigned
+    const truck=getTruck(truckId);
+    const targetSch=schs.find(s=>!(s.truckIds||[]).includes(truckId))||schs[0];
+    if(!targetSch.truckIds)targetSch.truckIds=[];
+    if(targetSch.truckIds.includes(truckId)){
+      targetSch.truckIds=targetSch.truckIds.filter(id=>id!==truckId);
+      toast(truck?.name+' を解除');
+    }else{
+      targetSch.truckIds.push(truckId);
+      toast(truck?.name+' を割当: '+(getSite(targetSch.siteId)?.name||''));
+    }
+    saveState();renderDayTable(dateStr);renderTruckDragList(dateStr);
+  }
+}
 
 // ===== SCHEDULE MODAL =====
 function openAddSchedule(){
@@ -821,7 +927,7 @@ function openAddSchedule(){
   document.getElementById('sch-time-e').value='17:00';
   renderProcessSelector();
   renderSiteSelector();
-  renderTruckSelector();
+  renderTruckSelector([]);
   document.getElementById('modal-schedule').classList.remove('hidden');
 }
 function openEditSchedule(schId){
@@ -837,7 +943,7 @@ function openEditSchedule(schId){
   document.getElementById('sch-del-btn').style.display='block';
   renderProcessSelector();
   renderSiteSelector(sch.siteId);
-  renderTruckSelector(sch.truckId);
+  renderTruckSelector(sch.truckIds||[]);
   document.getElementById('modal-schedule').classList.remove('hidden');
 }
 function renderProcessSelector(){
@@ -850,20 +956,39 @@ function renderSiteSelector(selId){
   const el=document.getElementById('sch-site');
   el.innerHTML='<option value="">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" ${s.id===selId?'selected':''}>${s.client} ${s.name}（${s.location}）</option>`).join('');
 }
-function renderTruckSelector(selId){
-  const el=document.getElementById('sch-truck');
-  el.innerHTML='<option value="">トラックなし</option>'+state.trucks.map(t=>`<option value="${t.id}" ${t.id===selId?'selected':''}>${t.name}</option>`).join('');
+function renderTruckSelector(selIds){
+  const container=document.getElementById('sch-truck-selector');
+  const selectedIds=Array.isArray(selIds)?selIds:(selIds?[selIds]:[]);
+  container.innerHTML=state.trucks.map(t=>`
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px">
+      <input type="checkbox" value="${t.id}" ${selectedIds.includes(t.id)?'checked':''}
+        onchange="toggleTruckSelection('${t.id}',this.checked)">
+      🚛 ${t.name}
+    </label>
+  `).join('')||'<div style="color:var(--sub);font-size:13px">トラックが登録されていません</div>';
+}
+function toggleTruckSelection(truckId,checked){
+  if(!state.editingSch)return;
+  const sch=state.schedules.find(s=>s.id===state.editingSch);
+  if(!sch)return;
+  if(!sch.truckIds)sch.truckIds=[];
+  if(checked){
+    if(!sch.truckIds.includes(truckId))sch.truckIds.push(truckId);
+  }else{
+    sch.truckIds=sch.truckIds.filter(id=>id!==truckId);
+  }
 }
 function saveSchedule(){
   const date=document.getElementById('sch-date').value;
   if(!date){toast('日付を入力してください');return;}
   const siteId=document.getElementById('sch-site').value;
-  const truckId=document.getElementById('sch-truck').value;
+  // Get selected truck IDs from checkboxes
+  const selectedTrucks=Array.from(document.querySelectorAll('#sch-truck-selector input:checked')).map(cb=>cb.value);
   if(state.editingSch){
     const sch=state.schedules.find(s=>s.id===state.editingSch);
     if(sch){
       sch.date=date;sch.process=state.editingSchProcess;
-      sch.siteId=siteId;sch.truckId=truckId;
+      sch.siteId=siteId;sch.truckIds=selectedTrucks;
       sch.timeStart=document.getElementById('sch-time-s').value;
       sch.timeEnd=document.getElementById('sch-time-e').value;
       sch.memo=document.getElementById('sch-memo').value;
@@ -871,7 +996,7 @@ function saveSchedule(){
   }else{
     state.schedules.push({
       id:uid(),date,process:state.editingSchProcess,
-      siteId,truckId,
+      siteId,truckIds:selectedTrucks,
       timeStart:document.getElementById('sch-time-s').value,
       timeEnd:document.getElementById('sch-time-e').value,
       memo:document.getElementById('sch-memo').value,
@@ -879,7 +1004,7 @@ function saveSchedule(){
     });
   }
   saveState();closeModal('modal-schedule');
-  if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);}
+  if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);renderTruckDragList(state.selectedDate);}
   else if(state.view==='cal')renderCal();
   else renderHome();
   toast('保存しました');
