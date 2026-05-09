@@ -585,14 +585,29 @@ function onCellClick(dateStr){
   openDayView(dateStr);
 }
 function onCardDragStart(event,schId){
-  event.dataTransfer.setData('schId',schId);
+  const isCopy=event.ctrlKey||event.metaKey;
+  event.dataTransfer.setData('dragData',JSON.stringify({schId,isCopy}));
+  event.dataTransfer.effectAllowed=isCopy?'copy':'move';
   event.target.classList.add('dragging');
 }
 function onCardDrop(event,dateStr){
   event.preventDefault();
-  const schId=event.dataTransfer.getData('schId');
+  const dragData=JSON.parse(event.dataTransfer.getData('dragData')||'{}');
+  const {schId,isCopy}=dragData;
   const sch=state.schedules.find(s=>s.id===schId);
-  if(sch){sch.date=dateStr;saveState();renderCal();toast('工程を移動しました');}
+  if(sch){
+    if(isCopy){
+      // コピーを作成
+      const newSch={...sch,id:uid(),date:dateStr,createdAt:Date.now()};
+      state.schedules.push(newSch);
+      toast('💾 工程をコピーしました');
+    }else{
+      // 移動
+      sch.date=dateStr;
+      toast('工程を移動しました');
+    }
+    saveState();renderCal();
+  }
   document.querySelectorAll('.cal-cell').forEach(c=>c.classList.remove('drag-over'));
 }
 
