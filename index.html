@@ -48,7 +48,7 @@
     /* ルーペ */
     #loupe {
       position: absolute;
-      width: 130px; height: 130px;
+      width: 200px; height: 200px;
       border-radius: 50%;
       border: 3px solid #e94560;
       overflow: hidden;
@@ -171,7 +171,7 @@
   <div class="placeholder" id="placeholder">📷 下のボタンから写真を撮影してください</div>
   <img id="photo" style="display:none;" />
   <canvas id="canvas"></canvas>
-  <div id="loupe"><canvas id="loupeCanvas" width="130" height="130"></canvas></div>
+  <div id="loupe"><canvas id="loupeCanvas" width="200" height="200"></canvas></div>
 </div>
 
 <div class="controls">
@@ -407,32 +407,52 @@
 
   // --- ルーペ ---
   function showLoupe(clientX, clientY, canvasX, canvasY) {
-  const loupe = document.getElementById('loupe');
+    const loupe = document.getElementById('loupe');
     const loupeCanvas = document.getElementById('loupeCanvas');
     const area = document.getElementById('photoArea');
     const areaRect = area.getBoundingClientRect();
-    const size = 130;
+    const size = 200;
+    const zoom = 6;
 
+    // ルーペ位置：指の上に表示
     let lx = clientX - areaRect.left - size / 2;
-    let ly = clientY - areaRect.top - size - 20;
-    if (ly < 0) ly = clientY - areaRect.top + 30;
+    let ly = clientY - areaRect.top - size - 30;
+    if (ly < 0) ly = clientY - areaRect.top + 40;
     loupe.style.left = lx + 'px';
     loupe.style.top = ly + 'px';
     loupe.style.display = 'block';
 
     const ctx = loupeCanvas.getContext('2d');
     ctx.clearRect(0, 0, size, size);
-    const zoom = 3;
-    const sx = canvasX - size / zoom / 2;
-    const sy = canvasY - size / zoom / 2;
-    if (imgEl) ctx.drawImage(imgEl, sx, sy, size / zoom, size / zoom, 0, 0, size, size);
 
-    // 十字線
-    ctx.strokeStyle = '#e94560';
-    ctx.lineWidth = 2;
+    // 画像の元サイズで切り出す範囲
+    const sw = size / zoom;
+    const sh = size / zoom;
+    const sx = canvasX - sw / 2;
+    const sy = canvasY - sh / 2;
+
+    // 元画像を拡大描画
+    if (imgEl) ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, size, size);
+
+    // メインキャンバスのピン等も重ねて描画
+    const mainCanvas = document.getElementById('canvas');
+    ctx.drawImage(mainCanvas, sx, sy, sw, sh, 0, 0, size, size);
+
+    // 十字線（細く精密に）
+    ctx.strokeStyle = 'rgba(233,69,96,0.9)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(size/2, 0); ctx.lineTo(size/2, size);
     ctx.moveTo(0, size/2); ctx.lineTo(size, size/2);
+    ctx.stroke();
+
+    // 中心ドット（ピン打つ位置）
+    ctx.fillStyle = '#e94560';
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   }
 
