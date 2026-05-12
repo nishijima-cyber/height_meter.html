@@ -173,13 +173,13 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 /* MEMBERS VIEW */
 .member-manage-list{display:flex;flex-direction:column;gap:8px}
 .member-manage-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:10px}
-.member-manage-row input{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.member-manage-row input{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:#222;background:#fff}
 .member-manage-row .del-btn{background:#ffebee;color:#c62828;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700}
 
 /* TRUCK VIEW */
 .truck-list{display:flex;flex-direction:column;gap:8px}
 .truck-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:10px}
-.truck-row input[type="text"]{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.truck-row input[type="text"]{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:#222;background:#fff}
 
 /* SEARCH */
 .search-box{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:12px;display:flex;gap:8px}
@@ -1799,12 +1799,12 @@ function renderMembers(){
         <div>
           <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🔑 車検満期日 <span style="color:#ef5350">*必須</span></div>
           <input type="date" value="${t.shaken||''}" onchange="updateTruckMaint('${t.id}','shaken',this.value)"
-            style="width:100%;font-size:13px;border:1px solid ${t.shaken?'var(--border)':'#ef5350'};border-radius:6px;padding:6px 8px;background:${t.shaken?'rgba(255,255,255,.06)':'rgba(239,83,80,.08)'}">
+            style="width:100%;font-size:13px;border:1px solid ${t.shaken?'var(--border)':'#ef5350'};border-radius:6px;padding:6px 8px;color:#222;background:${t.shaken?'#fff':'rgba(239,83,80,.15)'}">
         </div>
         <div>
           <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🛢️ 最終オイル交換日 <span style="color:var(--sub)">(任意)</span></div>
           <input type="date" value="${t.lastOil||''}" onchange="updateTruckMaint('${t.id}','lastOil',this.value)"
-            style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:6px 8px">
+            style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:#222;background:#fff">
         </div>
       </div>
       ${alerts?`<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4px">${alerts}</div>`:''}
