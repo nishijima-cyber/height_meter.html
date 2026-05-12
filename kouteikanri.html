@@ -638,7 +638,7 @@ select option{background:#111;color:#fff}
     </div>
     <div class="form-group">
       <label>現場</label>
-      <select id="sch-site"></select>
+      <select id="sch-site" style="width:100%;padding:8px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px"></select>
     </div>
     <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div>
@@ -1384,7 +1384,7 @@ function renderProcessSelector(){
 function selectProcess(p){state.editingSchProcess=p;renderProcessSelector();}
 function renderSiteSelector(selId){
   const el=document.getElementById('sch-site');
-  el.innerHTML='<option value="">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" ${s.id===selId?'selected':''}>元請:${s.client||'-'} 現場:${s.name||'-'} 場所:${s.location||'-'}</option>`).join('');
+  el.innerHTML='<option value="" style="background:#111;color:#fff">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" style="background:#111;color:#fff" ${s.id===selId?'selected':''}>元請:${s.client||'-'} 現場:${s.name||'-'} 場所:${s.location||'-'}</option>`).join('');
 }
 function renderTruckSelector(selIds){
   const container=document.getElementById('sch-truck-selector');
@@ -2407,13 +2407,4 @@ function selectUser(userId){
   if(user){
     localStorage.setItem(USER_ID_KEY, user.id);
     const userSelect = document.getElementById('user-select-screen');
-    if(userSelect) userSelect.remove();
-    showLoginScreen();
-  }
-}
-
-// ログアウト機能
-function logout(){
-  if(confirm('ログアウトしますか？')){
-    isLoggedIn = false;
-    currentUser = nul
+    if(userSelect) userS
