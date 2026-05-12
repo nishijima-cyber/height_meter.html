@@ -250,7 +250,10 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 
 <!-- HEADER -->
 <div id="header">
-  <h1>🏗 N-WORK SYSTEM</h1>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <h1>🏗 N-WORK SYSTEM</h1>
+    <div id="header-company-name" style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.5px"></div>
+  </div>
   <div style="display:flex;align-items:center;gap:8px">
     <span id="header-date" style="font-size:12px;color:#aaa"></span>
     <button id="logout-btn" onclick="logout()" style="background:#ffebee;color:#c62828;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;display:none">ログアウト</button>
@@ -297,6 +300,14 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 
 <!-- VIEWS -->
 <div id="view-home" class="view active">
+  <div id="home-greeting" style="background:linear-gradient(135deg,#1a1a1a,#222);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div id="home-company-label" style="font-size:13px;color:var(--accent);font-weight:700;margin-bottom:2px"></div>
+      <div id="home-date-label" style="font-size:12px;color:var(--sub)"></div>
+    </div>
+    <div id="home-weather-hint" style="font-size:28px">🏗</div>
+  </div>
+  <div id="truck-alert-banner" style="display:none;margin-bottom:12px"></div>
   <div class="home-stats" id="home-stats"></div>
   <div class="section-title">📋 今日の工程</div>
   <div id="today-list" class="today-list"></div>
@@ -503,6 +514,13 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 <div id="view-users" class="view">
   <div style="padding:16px">
     <h2 style="margin-bottom:20px;color:var(--accent)">👥 ユーザー管理</h2>
+    <div style="margin-bottom:20px;background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)">
+      <label style="font-size:12px;color:var(--sub);display:block;margin-bottom:6px">🏢 会社名（ヘッダーに表示）</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="company-name-input" placeholder="例: 琢磨興業" style="flex:1;padding:8px 12px;border-radius:8px;font-size:14px">
+        <button onclick="saveCompanyName()" style="background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700">保存</button>
+      </div>
+    </div>
     
     <div style="margin-bottom:20px">
       <h3 style="color:var(--text);margin-bottom:12px">📋 登録ユーザー</h3>
@@ -532,6 +550,16 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
           <input type="password" id="new-user-pin" placeholder="1234" maxlength="4" inputmode="numeric">
         </div>
         <button onclick="addUser()" style="background:var(--accent);color:#fff;border-radius:8px;padding:10px 20px;font-weight:700">ユーザー追加</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h3 style="color:var(--text)">📋 操作ログ</h3>
+        <button onclick="renderLogs()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--sub)">🔄 更新</button>
+      </div>
+      <div id="log-list" style="background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);max-height:400px;overflow-y:auto">
+        <div style="padding:16px;text-align:center;color:var(--sub);font-size:12px">「更新」ボタンでログを表示</div>
       </div>
     </div>
   </div>
@@ -571,7 +599,7 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
     <h3 id="modal-sch-title">工程追加</h3>
     <div class="form-group">
       <label>日付</label>
-      <input type="date" id="sch-date">
+      <input type="date" id="sch-date" onchange="refreshTruckSelector()">
     </div>
     <div class="form-group">
       <label>工程</label>
@@ -612,8 +640,8 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
   <div class="modal">
     <h3 id="modal-site-title">現場追加</h3>
     <div class="form-group">
-      <label>元請</label>
-      <input type="text" id="site-client" placeholder="例: アーネストワン">
+      <label>元請 <span style="color:#ef5350;font-size:11px">※必須</span></label>
+      <input type="text" id="site-client" placeholder="例: アーネストワン" style="border-color:var(--accent)">
     </div>
     <div class="form-group">
       <label>現場名</label>
@@ -649,11 +677,14 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 
 <script>
 // ===== STATE =====
-const STORAGE_KEY = 'nishijima_kouteikanri_v1';
+// ===== COMPANY CODE =====
+const companyCode = (new URLSearchParams(window.location.search).get('c') || 'default').replace(/[^a-zA-Z0-9_\-]/g, '_');
+const STORAGE_KEY = 'nishijima_kouteikanri_v1_' + companyCode;
 const PROCS = ['架','CAP','追加','是正','払','常用'];
 const PROC_COLORS = {架:'#757575',CAP:'#1565c0',追加:'#2e7d32',是正:'#c62828',払:'#bf360c',常用:'#6a1b9a'};
 let state = {
   sites:[],members:[],trucks:[],schedules:[],files:[],users:[],
+  companyName:'',
   view:'home',calYear:0,calMonth:0,selectedDate:null,
   editingSch:null,editingSite:null,editingSchProcess:'架'
 };
@@ -670,8 +701,11 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const dataRef = db.ref('kouteikanri/data');
+const dataRef     = db.ref('companies/' + companyCode + '/data');
+const logRef      = db.ref('companies/' + companyCode + '/logs');
+const presenceRef = db.ref('companies/' + companyCode + '/presence');
 let firebaseListenerActive = false;
+let myPresenceRef = null;
 
 // ===== STORAGE =====
 function loadState(){
@@ -738,11 +772,80 @@ function loadState(){
   }
 }
 function saveState(){
-  const d={sites:state.sites,members:state.members,trucks:state.trucks,schedules:state.schedules,files:state.files,users:state.users};
+  const d={sites:state.sites,members:state.members,trucks:state.trucks,schedules:state.schedules,files:state.files,users:state.users,companyName:state.companyName};
   localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
   // Firebase に書き込み
   dataRef.set(d).catch(e => console.warn('Firebase save error:', e));
 }
+// ===== PRESENCE =====
+function startPresence(user){
+  myPresenceRef = presenceRef.child(user.id);
+  const data = { name: user.name, ts: Date.now() };
+  myPresenceRef.set(data);
+  myPresenceRef.onDisconnect().remove();
+  // 接続状態を監視して再接続時にも復元
+  db.ref('.info/connected').on('value', snap => {
+    if(snap.val() && myPresenceRef){
+      myPresenceRef.onDisconnect().remove();
+      myPresenceRef.set({ name: user.name, ts: Date.now() });
+    }
+  });
+  // 全員のオンライン状態をリアルタイム監視
+  presenceRef.on('value', snap => {
+    const online = [];
+    snap.forEach(c => { const v=c.val(); if(v?.name) online.push(v.name); });
+    renderOnlineUsers(online);
+  });
+}
+function stopPresence(){
+  if(myPresenceRef){ myPresenceRef.remove(); myPresenceRef = null; }
+  presenceRef.off();
+  renderOnlineUsers([]);
+}
+function renderOnlineUsers(names){
+  let el = document.getElementById('online-badge');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'online-badge';
+    el.style.cssText = 'position:fixed;top:56px;left:0;right:0;background:#1a2a1a;border-bottom:1px solid #2a3a2a;padding:4px 12px;font-size:11px;color:#66bb6a;z-index:99;display:flex;align-items:center;gap:6px;min-height:22px';
+    document.body.insertBefore(el, document.body.firstChild);
+    // ヘッダーの下に入るようpadding調整
+    document.getElementById('header') && (document.getElementById('header').style.marginBottom='0');
+  }
+  if(!names.length){ el.style.display='none'; return; }
+  el.style.display='flex';
+  el.innerHTML = `<span style="color:#4caf50">●</span> 使用中: <strong>${names.join('、')}</strong>`;
+}
+
+// ===== ACTIVITY LOG =====
+function logAction(action, detail){
+  logRef.push({
+    ts: Date.now(),
+    user: currentUser?.name || 'ゲスト',
+    action,
+    detail: detail || ''
+  }).catch(e => console.warn('Log error:', e));
+}
+function renderLogs(){
+  const el = document.getElementById('log-list');
+  if(!el) return;
+  el.innerHTML = '<div style="padding:10px;color:var(--sub);font-size:12px">読み込み中...</div>';
+  logRef.orderByChild('ts').limitToLast(100).once('value', snap => {
+    const logs = [];
+    snap.forEach(c => logs.unshift(c.val()));
+    if(!logs.length){ el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--sub)">ログなし</div>'; return; }
+    el.innerHTML = logs.map(l => {
+      const d = new Date(l.ts);
+      const dt = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      return `<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:110px;font-size:11px;color:var(--sub)">${dt}</div>
+        <div style="min-width:70px;font-size:12px;font-weight:700;color:var(--accent)">${l.user}</div>
+        <div style="flex:1;font-size:12px"><span style="font-weight:600">${l.action}</span>${l.detail ? ' — '+l.detail : ''}</div>
+      </div>`;
+    }).join('');
+  });
+}
+
 function showSyncBadge(){
   let badge = document.getElementById('sync-badge');
   if(!badge){
@@ -822,6 +925,15 @@ function renderHome(){
   const totalToday=todaySchs.length;
   const totalMembers=new Set(todaySchs.flatMap(s=>s.memberIds||[])).size;
   const unassigned=state.members.filter(m=>!todaySchs.some(s=>(s.memberIds||[]).includes(m.id))).length;
+  // グリーティングバナー
+  const cname = state.companyName || (companyCode !== 'default' ? companyCode : '琢磨興業');
+  const greetEl = document.getElementById('home-company-label');
+  const dateEl  = document.getElementById('home-date-label');
+  if(greetEl) greetEl.textContent = cname ? cname : 'N-WORK SYSTEM';
+  if(dateEl)  dateEl.textContent  = formatDate(today);
+  // 工程数でアイコンを変える
+  const iconEl = document.getElementById('home-weather-hint');
+  if(iconEl) iconEl.textContent = totalToday===0?'😴':totalToday<=2?'🏗':'⚡';
   document.getElementById('home-stats').innerHTML=`
     <div class="stat-card"><div class="num">${totalToday}</div><div class="lbl">今日の工程</div></div>
     <div class="stat-card"><div class="num">${totalMembers}</div><div class="lbl">稼働人数</div></div>
@@ -829,7 +941,27 @@ function renderHome(){
   `;
   document.getElementById('today-list').innerHTML=renderScheduleList(todaySchs)||'<div class="empty">工程なし</div>';
   document.getElementById('tomorrow-list').innerHTML=renderScheduleList(tmrSchs)||'<div class="empty">工程なし</div>';
+  // トラック警告バナー
+  const truckAlerts=state.trucks.flatMap(t=>getTruckAlerts(t).map(a=>({...a,truckName:t.name})));
+  const alertEl=document.getElementById('truck-alert-banner');
+  if(alertEl){
+    if(truckAlerts.length){
+      alertEl.style.display='block';
+      alertEl.innerHTML=truckAlerts.map(a=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:${a.level==='danger'?'rgba(239,83,80,.12)':'rgba(255,167,38,.12)'};border-left:4px solid ${a.level==='danger'?'#ef5350':'#ffa726'};border-radius:6px;margin-bottom:6px">
+          <span style="font-size:18px">${a.icon}</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:${a.level==='danger'?'#ef5350':'#ffa726'}">${a.truckName}</div>
+            <div style="font-size:12px;color:var(--sub)">${a.label}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      alertEl.style.display='none';
+    }
+  }
   document.getElementById('header-date').textContent=formatDate(today);
+  const nameEl = document.getElementById('header-company-name');
+  if(nameEl) nameEl.textContent = state.companyName || (companyCode !== 'default' ? companyCode : '琢磨興業');
 }
 function renderScheduleList(schs){
   return schs.map(s=>{
@@ -953,13 +1085,18 @@ function showCal(){showView('cal');}
 function renderDayTable(dateStr){
   const schs=getSchedules(dateStr);
   if(!schs.length){document.getElementById('day-tbody').innerHTML='<tr><td colspan="8" class="empty">工程なし</td></tr>';return;}
+  const dateStr2=dateStr;
   document.getElementById('day-tbody').innerHTML=schs.map(s=>{
     const site=getSite(s.siteId);
     const trucks=(s.truckIds||[]).map(id=>getTruck(id)?.name).filter(Boolean);
-    const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean);
+    const memberChips=(s.memberIds||[]).map(id=>{
+      const m=getMember(id);
+      return m?`<span class="member-chip" onclick="removeMemberFromSchedule('${s.id}','${id}','${dateStr2}')" title="タップで外す" style="cursor:pointer">✕ ${m.name}</span>`:'';
+    }).filter(Boolean);
     const mapUrl=site&&site.address?`https://maps.google.com/?q=${encodeURIComponent(site.address)}`:'';
+    const clientLabel=site?.client?`<span style="font-size:11px;color:var(--sub);display:block">${site.client}</span>`:'<span style="font-size:11px;color:#ef5350">未設定</span>';
     return `<tr>
-      <td>${site?site.client:'-'}</td>
+      <td>${clientLabel}</td>
       <td style="font-weight:700">${site?site.name:'-'}</td>
       <td>${site?`<span>${site.location}</span>${mapUrl?`<br><span class="map-link" onclick="window.open('${mapUrl}','_blank')">📍 地図</span>`:''}`:'-'}</td>
       <td><span class="badge ${s.process}">${s.process}</span></td>
@@ -972,13 +1109,23 @@ function renderDayTable(dateStr){
       </td>
       <td>
         <div style="min-width:100px">
-          ${members.map(n=>`<span class="member-chip">${n}</span>`).join('')}
-          ${members.length?`<div style="font-size:11px;color:var(--sub);margin-top:3px">計${members.length}人</div>`:''}
+          ${memberChips.join('')}
+          ${memberChips.length?`<div style="font-size:11px;color:var(--sub);margin-top:3px">計${memberChips.length}人</div>`:''}
         </div>
       </td>
       <td><button class="btn-sm" onclick="openEditSchedule('${s.id}')">編集</button></td>
     </tr>`;
   }).join('');
+}
+function removeMemberFromSchedule(schId, memberId, dateStr){
+  const sch=state.schedules.find(s=>s.id===schId);
+  if(!sch)return;
+  sch.memberIds=(sch.memberIds||[]).filter(id=>id!==memberId);
+  saveState();
+  renderDayTable(dateStr);
+  renderMemberDragList(dateStr);
+  const m=getMember(memberId);
+  toast((m?.name||'メンバー')+'を外しました');
 }
 function renderMemberDragList(dateStr){
   const schs=getSchedules(dateStr);
@@ -1154,18 +1301,52 @@ function renderProcessSelector(){
 function selectProcess(p){state.editingSchProcess=p;renderProcessSelector();}
 function renderSiteSelector(selId){
   const el=document.getElementById('sch-site');
-  el.innerHTML='<option value="">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" ${s.id===selId?'selected':''}>${s.client} ${s.name}（${s.location}）</option>`).join('');
+  el.innerHTML='<option value="">現場を選択</option>'+state.sites.map(s=>`<option value="${s.id}" ${s.id===selId?'selected':''}>元請:${s.client||'-'} 現場:${s.name||'-'} 場所:${s.location||'-'}</option>`).join('');
 }
 function renderTruckSelector(selIds){
   const container=document.getElementById('sch-truck-selector');
   const selectedIds=Array.isArray(selIds)?selIds:(selIds?[selIds]:[]);
-  container.innerHTML=state.trucks.map(t=>`
-    <label style="display:flex;align-items:center;gap:6px;font-size:14px">
-      <input type="checkbox" value="${t.id}" ${selectedIds.includes(t.id)?'checked':''}
-        onchange="toggleTruckSelection('${t.id}',this.checked)">
-      🚛 ${t.name}
-    </label>
-  `).join('')||'<div style="color:var(--sub);font-size:13px">トラックが登録されていません</div>';
+  const date=document.getElementById('sch-date').value;
+  // その日すでに他の工程に割り当たっているトラックを調べる
+  const bookedMap={};
+  if(date){
+    state.schedules.filter(s=>s.date===date&&s.status!=='archived'&&s.id!==state.editingSch).forEach(s=>{
+      (s.truckIds||[]).forEach(tid=>{
+        const site=getSite(s.siteId);
+        bookedMap[tid]=(bookedMap[tid]||[]);
+        bookedMap[tid].push(site?site.client+' '+site.name:'別現場');
+      });
+    });
+  }
+  container.innerHTML=state.trucks.map(t=>{
+    const booked=bookedMap[t.id];
+    const warn=booked?`<span style="color:#ffa726;font-size:11px;font-weight:700">⚠️ ${booked.join('・')}に割当済</span>`:'';
+    const maintAlerts=getTruckAlerts(t).map(a=>`<span style="color:${a.level==='danger'?'#ef5350':'#ffa726'};font-size:11px;font-weight:700">${a.icon} ${a.label}</span>`).join(' ');
+    return `<label style="display:flex;flex-direction:column;gap:2px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" value="${t.id}" ${selectedIds.includes(t.id)?'checked':''}
+          onchange="toggleTruckSelection('${t.id}',this.checked)">
+        🚛 ${t.name}
+      </div>
+      ${warn}${maintAlerts?`<div style="padding-left:20px">${maintAlerts}</div>`:''}
+    </label>`;
+  }).join('')||'<div style="color:var(--sub);font-size:13px">トラックが登録されていません</div>';
+}
+function refreshTruckSelector(){
+  const checked=Array.from(document.querySelectorAll('#sch-truck-selector input:checked')).map(cb=>cb.value);
+  renderTruckSelector(checked);
+}
+function checkTruckConflicts(date, truckIds, excludeSchId){
+  const conflicts=[];
+  truckIds.forEach(tid=>{
+    state.schedules.filter(s=>s.date===date&&s.status!=='archived'&&s.id!==excludeSchId).forEach(s=>{
+      if((s.truckIds||[]).includes(tid)){
+        const t=getTruck(tid);const site=getSite(s.siteId);
+        conflicts.push(`${t?.name||'トラック'}→${site?site.client+' '+site.name:'別現場'}`);
+      }
+    });
+  });
+  return [...new Set(conflicts)];
 }
 function toggleTruckSelection(truckId,checked){
   if(!state.editingSch)return;
@@ -1203,17 +1384,32 @@ function saveSchedule(){
       memberIds:[],status:'active',createdAt:Date.now()
     });
   }
-  saveState();closeModal('modal-schedule');
+  const site2 = getSite(document.getElementById('sch-site').value);
+  const logDetail = `${date} ${site2?site2.client+' '+site2.name:'現場未設定'} [${state.editingSchProcess}]`;
+  // トラックかぶりチェック
+  const conflicts = checkTruckConflicts(date, selectedTrucks, state.editingSch);
+  saveState();
+  logAction(state.editingSch ? '工程編集' : '工程追加', logDetail);
+  closeModal('modal-schedule');
   if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);renderTruckDragList(state.selectedDate);}
   else if(state.view==='cal')renderCal();
   else renderHome();
-  toast('保存しました');
+  if(conflicts.length){
+    setTimeout(()=>toast('⚠️ トラックかぶり: '+conflicts.join(' / ')),300);
+  } else {
+    toast('保存しました');
+  }
 }
 function deleteSchedule(){
   if(!state.editingSch)return;
   if(!confirm('この工程を削除しますか？'))return;
+  const sch = state.schedules.find(s=>s.id===state.editingSch);
+  const site2 = sch ? getSite(sch.siteId) : null;
+  const logDetail = sch ? `${sch.date} ${site2?site2.client+' '+site2.name:'現場未設定'}` : '';
   state.schedules=state.schedules.filter(s=>s.id!==state.editingSch);
-  saveState();closeModal('modal-schedule');
+  saveState();
+  logAction('工程削除', logDetail);
+  closeModal('modal-schedule');
   if(state.view==='day'&&state.selectedDate){renderDayTable(state.selectedDate);renderMemberDragList(state.selectedDate);}
   else if(state.view==='cal')renderCal();
   toast('削除しました');
@@ -1252,11 +1448,11 @@ function showSiteList(){
   }
   document.getElementById('site-content').innerHTML='<div class="site-list">'+state.sites.map(s=>`
     <div class="site-card" onclick="showSiteDetail('${s.id}')">
-      <h3>${s.client} ${s.name}</h3>
+      <h3>${s.name}</h3>
       <div class="meta">
-        <span>📍 ${s.location}</span>
-        ${s.manager?`<span>👤 ${s.manager}</span>`:''}
-        ${s.phone?`<span>📞 ${s.phone}</span>`:''}
+        <span>🏢 元請: ${s.client||'-'}</span>
+        <span>📍 場所: ${s.location||'-'}</span>
+        ${s.manager?`<span>👤 担当: ${s.manager}</span>`:''}
       </div>
       ${s.memo?`<div style="font-size:12px;color:var(--sub);margin-top:6px">${s.memo}</div>`:''}
     </div>`).join('')+'</div>';
@@ -1269,7 +1465,12 @@ function showSiteDetail(siteId){
   document.getElementById('site-content').innerHTML=`
     <div class="site-detail">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
-        <h2>${s.client}<br>${s.name}</h2>
+        <div>
+          <div style="font-size:14px;color:var(--sub);margin-bottom:4px">元請</div>
+          <h2>${s.client||'未設定'}</h2>
+          <div style="font-size:14px;color:var(--sub);margin-top:12px;margin-bottom:4px">現場名</div>
+          <div style="font-size:20px;font-weight:800">${s.name||'未設定'}</div>
+        </div>
         <button class="btn-sm" onclick="openEditSite('${siteId}')">編集</button>
       </div>
       <div class="site-info-grid">
@@ -1435,6 +1636,8 @@ function openEditSite(siteId){
 }
 function saveSite(){
   const name=document.getElementById('site-name').value.trim();
+  const client=document.getElementById('site-client').value.trim();
+  if(!client){toast('元請名を入力してください');return;}
   if(!name){toast('現場名を入力してください');return;}
   const data={
     client:document.getElementById('site-client').value.trim(),
@@ -1449,13 +1652,44 @@ function saveSite(){
   }else{
     state.sites.push({id:uid(),...data,createdAt:Date.now()});
   }
-  saveState();closeModal('modal-site');showSiteList();toast('保存しました');
+  saveState();
+  logAction(state.editingSite ? '現場編集' : '現場追加', `${data.client} ${data.name}`);
+  closeModal('modal-site');showSiteList();toast('保存しました');
 }
 function deleteSite(){
   if(!state.editingSite)return;
   if(!confirm('この現場を削除しますか？工程データは残ります。'))return;
+  const s2 = getSite(state.editingSite);
+  const logDetail = s2 ? `${s2.client} ${s2.name}` : '';
   state.sites=state.sites.filter(s=>s.id!==state.editingSite);
-  saveState();closeModal('modal-site');showSiteList();toast('削除しました');
+  saveState();
+  logAction('現場削除', logDetail);
+  closeModal('modal-site');showSiteList();toast('削除しました');
+}
+
+// ===== TRUCK MAINTENANCE =====
+function getTruckAlerts(t){
+  const alerts=[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  if(t.shaken){
+    const d=new Date(t.shaken+'T00:00:00');
+    const days=Math.ceil((d-today)/(1000*60*60*24));
+    if(days<0)      alerts.push({icon:'🚨',label:'車検切れ！',level:'danger'});
+    else if(days<=60)alerts.push({icon:'⚠️',label:`車検まで${days}日`,level:'warn'});
+  }
+  if(t.lastOil){
+    const d=new Date(t.lastOil+'T00:00:00');
+    const days=Math.floor((today-d)/(1000*60*60*24));
+    if(days>=90)    alerts.push({icon:days>=105?'🚨':'⚠️',label:`オイル${days}日経過`,level:days>=105?'danger':'warn'});
+  } else if(t.createdAt){
+    // 登録日から90日経過していたら警告
+    const days=Math.floor((today-new Date(t.createdAt))/(1000*60*60*24));
+    if(days>=90) alerts.push({icon:'⚠️',label:'オイル交換日未登録',level:'warn'});
+  }
+  return alerts;
+}
+function renderTruckAlertBadges(t){
+  return getTruckAlerts(t).map(a=>`<span style="font-size:11px;font-weight:700;color:${a.level==='danger'?'#ef5350':'#ffa726'};background:${a.level==='danger'?'rgba(239,83,80,.15)':'rgba(255,167,38,.15)'};padding:2px 7px;border-radius:10px">${a.icon} ${a.label}</span>`).join('');
 }
 
 // ===== MEMBERS =====
@@ -1466,463 +1700,81 @@ function renderMembers(){
       <input type="text" value="${m.name}" onchange="updateMemberName('${m.id}',this.value)" placeholder="名前">
       <button class="del-btn" onclick="removeMember('${m.id}')">削除</button>
     </div>`).join('')||'<div class="empty">メンバーなし</div>';
-  document.getElementById('truck-list').innerHTML=state.trucks.map(t=>`
-    <div class="truck-row">
-      <span style="font-size:20px">🚛</span>
-      <input type="text" value="${t.name}" onchange="updateTruckName('${t.id}',this.value)" placeholder="トラック名">
-      <button class="del-btn" onclick="removeTruck('${t.id}')">削除</button>
-    </div>`).join('')||'<div class="empty">トラックなし</div>';
+  document.getElementById('truck-list').innerHTML=state.trucks.map(t=>{
+    const alerts=renderTruckAlertBadges(t);
+    return `<div class="truck-row" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">🚛</span>
+        <input type="text" value="${t.name}" onchange="updateTruckName('${t.id}',this.value)" placeholder="トラック名" style="flex:1">
+        <button class="del-btn" onclick="removeTruck('${t.id}')">削除</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-left:28px">
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🔧 車検満期日</div>
+          <input type="date" value="${t.shaken||''}" onchange="updateTruckMaint('${t.id}','shaken',this.value)" style="width:100%;padding:5px 8px;border-radius:6px;font-size:13px">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🛢️ 最終オイル交換</div>
+          <input type="date" value="${t.lastOil||''}" onchange="updateTruckMaint('${t.id}','lastOil',this.value)" style="width:100%;padding:5px 8px;border-radius:6px;font-size:13px">
+        </div>
+      </div>
+      ${alerts?`<div style="display:flex;gap:6px;flex-wrap:wrap;padding-left:28px">${alerts}</div>`:''}
+    </div>`;
+  }).join('')||'<div class="empty">トラックなし</div>';
 }
 function addMember(){
   state.members.push({id:uid(),name:'新しいメンバー',createdAt:Date.now()});
   saveState();renderMembers();
+  logAction('メンバー追加', '新しいメンバー');
 }
 function updateMemberName(id,name){
-  const m=getMember(id);if(m){m.name=name.trim();saveState();}
+  const m=getMember(id);
+  if(m){
+    const old=m.name;
+    m.name=name.trim();
+    saveState();
+    logAction('メンバー名変更', `${old} → ${name.trim()}`);
+  }
 }
 function removeMember(id){
   if(!confirm('このメンバーを削除しますか？'))return;
+  const m=getMember(id);
+  const name=m?.name||'';
   state.members=state.members.filter(m=>m.id!==id);
   state.schedules.forEach(s=>{s.memberIds=(s.memberIds||[]).filter(mid=>mid!==id);});
   saveState();renderMembers();toast('削除しました');
+  logAction('メンバー削除', name);
+}
+function updateTruckMaint(id, field, value){
+  const t=getTruck(id);
+  if(t){ t[field]=value; saveState(); renderMembers();
+    logAction('車両メンテ更新', `${t.name} ${field==='shaken'?'車検':' オイル交換'}: ${value}`);
+  }
 }
 function addTruck(){
   state.trucks.push({id:uid(),name:'新しいトラック',createdAt:Date.now()});
   saveState();renderMembers();
+  logAction('トラック追加', '新しいトラック');
 }
 function updateTruckName(id,name){
-  const t=getTruck(id);if(t){t.name=name.trim();saveState();}
+  const t=getTruck(id);
+  if(t){
+    const old=t.name;
+    t.name=name.trim();
+    saveState();
+    logAction('トラック名変更', `${old} → ${name.trim()}`);
+  }
 }
 function removeTruck(id){
   if(!confirm('このトラックを削除しますか？'))return;
+  const t=getTruck(id);
+  const name=t?.name||'';
   state.trucks=state.trucks.filter(t=>t.id!==id);
   saveState();renderMembers();toast('削除しました');
+  logAction('トラック削除', name);
 }
 
 // ===== SEARCH =====
 function doSearch(){
   const q=document.getElementById('search-input').value.trim().toLowerCase();
-  if(!q){document.getElementById('search-results').innerHTML='';return;}
-  const cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);
-  const results=state.schedules.filter(s=>{
-    const d=new Date(s.date+'T00:00:00');
-    if(d<cutoff)return false;
-    const site=getSite(s.siteId);
-    const truck=getTruck(s.truckId);
-    const members=(s.memberIds||[]).map(id=>getMember(id)?.name||'');
-    const searchText=[
-      site?.client,site?.name,site?.location,site?.address,
-      s.process,s.memo,truck?.name,...members
-    ].join(' ').toLowerCase();
-    return searchText.includes(q);
-  }).sort((a,b)=>b.date.localeCompare(a.date));
-  if(!results.length){document.getElementById('search-results').innerHTML='<div class="empty">該当なし</div>';return;}
-  document.getElementById('search-results').innerHTML=`
-    <div class="search-result">
-      <div style="padding:10px 16px;font-size:12px;color:var(--sub);border-bottom:1px solid var(--border)">${results.length}件見つかりました</div>
-      ${results.map(s=>{
-        const site=getSite(s.siteId);
-        const members=(s.memberIds||[]).map(id=>getMember(id)?.name).filter(Boolean);
-        return `<div class="sr-row" onclick="openDayView('${s.date}')">
-          <div class="sr-date">${s.date.slice(5).replace('-','/')}</div>
-          <span class="badge ${s.process}">${s.process}</span>
-          <div class="sr-main">
-            <div class="sr-title">${site?site.client+' '+site.name:'(現場未設定)'}</div>
-            <div class="sr-sub">${site?site.location:''} ${members.length?'👷'+members.join('・'):''}</div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-// ===== PRINT =====
-function printDay(mode){
-  let title='';
-  if(mode==='today'){state.selectedDate=todayStr();title='今日の工程 '+formatDate(todayStr());}
-  else if(mode==='tomorrow'){state.selectedDate=tomorrowStr();title='明日の工程 '+formatDate(tomorrowStr());}
-  else{title='週間工程表';}
-  document.getElementById('print-title').textContent=title+' ― 西島工業';
-  if(mode!=='week')renderDayTable(state.selectedDate);
-  window.print();
-}
-
-// ===== MODAL =====
-function closeModal(id){
-  document.getElementById(id).classList.add('hidden');
-}
-document.querySelectorAll('.modal-overlay').forEach(el=>{
-  el.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
-});
-
-// ===== INIT =====
-loadState();
-document.getElementById('fab').style.display='none';
-renderHome();
-
-// ===== LOGIN SYSTEM =====
-const PIN_KEY = 'nishijima_pin';
-const ROLE_KEY = 'nishijima_role';
-const USER_ID_KEY = 'nishijima_user_id';
-let isLoggedIn = false;
-let currentUser = null;
-let currentRole = 'viewer'; // 'admin' or 'viewer'
-
-function initLogin(){
-  const savedPin = localStorage.getItem(PIN_KEY);
-  if(savedPin){
-    // まずstateを読み込んでユーザー情報を取得
-    loadState();
-    if(state.users && state.users.length > 0){
-      showUserSelection();
-    }else{
-      showLoginScreen();
-    }
-  }else{
-    showPinSetupScreen();
-  }
-}
-
-function hideUserSelectionScreen(){
-  const screen = document.getElementById('user-select-screen');
-  if(screen) screen.remove();
-}
-
-function showLoginScreen(){
-  hideUserSelectionScreen();
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('pin-setup-screen').classList.add('hidden');
-  document.getElementById('logout-btn').style.display = 'none';
-  document.getElementById('pin-input').value = '';
-  updatePinDots();
-  document.getElementById('login-btn').disabled = true;
-  document.getElementById('login-btn').classList.remove('enabled');
-  document.getElementById('pin-input').focus();
-}
-
-function showPinSetupScreen(){
-  hideUserSelectionScreen();
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('pin-setup-screen').classList.remove('hidden');
-  document.getElementById('logout-btn').style.display = 'none';
-  document.getElementById('new-pin-input').value = '';
-  document.getElementById('confirm-pin-input').value = '';
-  document.getElementById('setup-pin-btn').disabled = true;
-  document.getElementById('setup-pin-btn').classList.remove('enabled');
-}
-
-function updatePinDots(){
-  const pin = document.getElementById('pin-input').value;
-  const dots = document.querySelectorAll('#pin-dots span');
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('active', i < pin.length);
-  });
-  const loginBtn = document.getElementById('login-btn');
-  loginBtn.disabled = pin.length !== 4;
-  loginBtn.classList.toggle('enabled', pin.length === 4);
-}
-
-function updateSetupBtn(){
-  const newPin = document.getElementById('new-pin-input').value;
-  const confirmPin = document.getElementById('confirm-pin-input').value;
-  const setupBtn = document.getElementById('setup-pin-btn');
-  const isValid = newPin.length === 4 && confirmPin.length === 4 && newPin === confirmPin;
-  setupBtn.disabled = !isValid;
-  setupBtn.classList.toggle('enabled', isValid);
-}
-
-function login(){
-  const pin = document.getElementById('pin-input').value;
-  const savedPin = localStorage.getItem(PIN_KEY);
-  if(pin !== savedPin){
-    toast('PINコードが間違っています');
-    document.getElementById('pin-input').value = '';
-    updatePinDots();
-    return;
-  }
-
-  loadState();
-  let user = null;
-  const userId = localStorage.getItem(USER_ID_KEY);
-  if(userId){
-    user = state.users.find(u => u.id === userId);
-  }
-  if(!user){
-    user = state.users.find(u => u.pin === pin);
-    if(user){
-      localStorage.setItem(USER_ID_KEY, user.id);
-    }
-  }
-
-  if(!user){
-    toast('ユーザー情報が見つかりません');
-    return;
-  }
-
-  isLoggedIn = true;
-  currentUser = user;
-  currentRole = user.role || 'viewer';
-  hideUserSelectionScreen();
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('pin-setup-screen').classList.add('hidden');
-  renderHome();
-  updateUIBasedOnRole();
-  toast(`${user.name}としてログインしました`);
-}
-
-function setupPin(){
-  const newPin = document.getElementById('new-pin-input').value;
-  const confirmPin = document.getElementById('confirm-pin-input').value;
-  if(newPin === confirmPin){
-    localStorage.setItem(PIN_KEY, newPin);
-    
-    // 最初の管理者ユーザーを作成
-    const adminUser = {
-      id: uid(),
-      name: '管理者',
-      pin: newPin,
-      role: 'admin',
-      createdAt: Date.now()
-    };
-    state.users.push(adminUser);
-    localStorage.setItem(USER_ID_KEY, adminUser.id);
-    saveState();
-    
-    isLoggedIn = true;
-    currentUser = adminUser;
-    currentRole = 'admin';
-    document.getElementById('pin-setup-screen').classList.add('hidden');
-    renderHome();
-    updateUIBasedOnRole();
-    toast('管理者アカウントを作成しました');
-  }else{
-    toast('PINコードが一致しません');
-  }
-}
-
-function forgotPin(){
-  if(confirm('PINコードをリセットしますか？\nすべてのデータが削除されます。')){
-    localStorage.removeItem(PIN_KEY);
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  }
-}
-
-// Event listeners
-document.getElementById('pin-input').addEventListener('input', updatePinDots);
-document.getElementById('pin-input').addEventListener('keypress', function(e){
-  if(e.key === 'Enter' && !document.getElementById('login-btn').disabled){
-    login();
-  }
-});
-document.getElementById('login-btn').addEventListener('click', login);
-document.getElementById('forgot-pin-btn').addEventListener('click', forgotPin);
-
-document.getElementById('new-pin-input').addEventListener('input', updateSetupBtn);
-document.getElementById('confirm-pin-input').addEventListener('input', updateSetupBtn);
-document.getElementById('setup-pin-btn').addEventListener('click', setupPin);
-document.getElementById('back-to-login-btn').addEventListener('click', function(){
-  if(localStorage.getItem(PIN_KEY)){
-    showLoginScreen();
-  }else{
-    showPinSetupScreen();
-  }
-});
-
-// Override loadState and saveState to require login
-const originalLoadState = loadState;
-const originalSaveState = saveState;
-
-loadState = function(){
-  if(!isLoggedIn) return;
-  originalLoadState();
-};
-
-saveState = function(){
-  if(!isLoggedIn) return;
-  originalSaveState();
-};
-
-// ===== PERMISSION SYSTEM =====
-function updateUIBasedOnRole(){
-  const isAdmin = currentRole === 'admin';
-  const loggedIn = isLoggedIn;
-  
-  // FABボタンの表示制御（管理者のみ）
-  document.getElementById('fab').style.display = loggedIn && (state.view === 'cal' || state.view === 'sites' || state.view === 'members' || (state.view === 'users' && isAdmin)) ? 'flex' : 'none';
-  
-  // 編集ボタンの表示制御
-  document.querySelectorAll('.btn-sm, .btn-primary, .btn-danger').forEach(btn => {
-    if(!loggedIn || (!isAdmin && (btn.textContent.includes('編集') || btn.textContent.includes('削除') || btn.textContent.includes('追加')))) {
-      btn.style.display = 'none';
-    }
-  });
-  
-  // ユーザー管理タブの表示制御（管理者のみ）
-  const userTab = document.querySelector('[data-view="users"]');
-  if(userTab) {
-    userTab.style.display = loggedIn && isAdmin ? 'flex' : 'none';
-  }
-  
-  // ログアウトボタン制御
-  document.getElementById('logout-btn').style.display = loggedIn ? 'inline-flex' : 'none';
-  
-  // ヘッダーにユーザー情報表示
-  const header = document.getElementById('header');
-  const userInfo = document.getElementById('user-info') || document.createElement('div');
-  userInfo.id = 'user-info';
-  userInfo.style.fontSize = '12px';
-  userInfo.style.color = '#aaa';
-  userInfo.textContent = loggedIn ? `${currentUser?.name || 'ゲスト'} (${currentRole === 'admin' ? '管理者' : '閲覧者'})` : 'ログインしてください';
-  header.appendChild(userInfo);
-}
-
-// ===== USER MANAGEMENT =====
-function renderUsers(){
-  if(currentRole !== 'admin') {
-    document.getElementById('view-users').innerHTML = '<div style="padding:16px;text-align:center;color:#666;">権限がありません</div>';
-    return;
-  }
-  
-  const userList = document.getElementById('user-list');
-  userList.innerHTML = state.users.map(user => `
-    <div class="member-manage-row">
-      <span style="font-size:20px">${user.role === 'admin' ? '👑' : '👤'}</span>
-      <div style="flex:1">
-        <div>${user.name}</div>
-        <div style="font-size:11px;color:var(--sub)">${user.role === 'admin' ? '管理者' : '閲覧者'}</div>
-      </div>
-      <button class="btn-sm" onclick="editUser('${user.id}')" ${user.id === currentUser?.id ? 'disabled' : ''}>編集</button>
-      <button class="del-btn" onclick="removeUser('${user.id}')" ${user.id === currentUser?.id ? 'disabled' : ''}>削除</button>
-    </div>
-  `).join('') || '<div class="empty">ユーザーがいません</div>';
-}
-
-function addUser(){
-  const name = document.getElementById('new-user-name').value.trim();
-  const role = document.getElementById('new-user-role').value;
-  const pin = document.getElementById('new-user-pin').value;
-  
-  if(!name || !pin || pin.length !== 4) {
-    toast('すべての項目を正しく入力してください');
-    return;
-  }
-  
-  // PINの重複チェック
-  if(state.users.some(u => u.pin === pin)) {
-    toast('このPINコードは既に使用されています');
-    return;
-  }
-  
-  const newUser = {
-    id: uid(),
-    name,
-    pin,
-    role,
-    createdAt: Date.now()
-  };
-  
-  state.users.push(newUser);
-  saveState();
-  renderUsers();
-  
-  // フォームをクリア
-  document.getElementById('new-user-name').value = '';
-  document.getElementById('new-user-pin').value = '';
-  
-  toast(`ユーザー「${name}」を追加しました`);
-}
-
-function editUser(userId){
-  const user = state.users.find(u => u.id === userId);
-  if(!user) return;
-  
-  const newName = prompt('新しいユーザー名:', user.name);
-  if(!newName || newName.trim() === '') return;
-  
-  const newRole = confirm('管理者権限を付与しますか？\n（キャンセルで閲覧者のまま）') ? 'admin' : 'viewer';
-  
-  user.name = newName.trim();
-  user.role = newRole;
-  saveState();
-  renderUsers();
-  updateUIBasedOnRole();
-  toast('ユーザーを更新しました');
-}
-
-function removeUser(userId){
-  const user = state.users.find(u => u.id === userId);
-  if(!user) return;
-  
-  if(!confirm(`ユーザー「${user.name}」を削除しますか？`)) return;
-  
-  state.users = state.users.filter(u => u.id !== userId);
-  saveState();
-  renderUsers();
-  toast('ユーザーを削除しました');
-}
-
-// ===== LOGIN ENHANCEMENT =====
-function showUserSelection(){
-  // 複数のユーザーがいる場合、ユーザー選択画面を表示
-  hideUserSelectionScreen();
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('pin-setup-screen').classList.add('hidden');
-  if(state.users.length > 1){
-    const userSelect = document.createElement('div');
-    userSelect.id = 'user-select-screen';
-    userSelect.className = 'login-screen';
-    userSelect.innerHTML = `
-      <div class="login-container">
-        <div class="login-header">
-          <h1>🔐 N-WORK SYSTEM</h1>
-          <p>ログインするユーザーを選択してください</p>
-        </div>
-        <div class="login-form">
-          ${state.users.map(user => `
-            <button class="user-select-btn" onclick="selectUser('${user.id}')">
-              <span style="font-size:24px">${user.role === 'admin' ? '👑' : '👤'}</span>
-              <div>
-                <div style="font-weight:700">${user.name}</div>
-                <div style="font-size:12px;color:#666">${user.role === 'admin' ? '管理者' : '閲覧者'}</div>
-              </div>
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    `;
-    document.body.appendChild(userSelect);
-  }else if(state.users.length === 1){
-    selectUser(state.users[0].id);
-  } else {
-    showLoginScreen();
-  }
-}
-
-function selectUser(userId){
-  const user = state.users.find(u => u.id === userId);
-  if(user){
-    localStorage.setItem(USER_ID_KEY, user.id);
-    const userSelect = document.getElementById('user-select-screen');
-    if(userSelect) userSelect.remove();
-    showLoginScreen();
-  }
-}
-
-// ログアウト機能
-function logout(){
-  if(confirm('ログアウトしますか？')){
-    isLoggedIn = false;
-    currentUser = null;
-    currentRole = 'viewer';
-    updateUIBasedOnRole();
-    showLoginScreen();
-  }
-}
-
-// Initialize login on page load
-document.addEventListener('DOMContentLoaded', function() {
-  initLogin();
-});
-</script>
-</body>
-</html>
+  if(!q){document.getElementById('search-results').innerHTML='';
