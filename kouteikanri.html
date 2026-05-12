@@ -20,6 +20,8 @@
 body{font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;font-size:14px;line-height:1.6;letter-spacing:.02em;font-feature-settings:'palt';background:radial-gradient(circle at top,#181818 0%,var(--bg) 60%);color:var(--text);min-height:100vh;padding-bottom:70px}
 button{cursor:pointer;border:none;outline:none;font-family:inherit;background:rgba(255,255,255,.08);color:var(--text);backdrop-filter:blur(10px)}
 input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.08)}
+select{background:#111;color:#fff;border:1px solid rgba(255,255,255,.25)}
+select option{background:#111;color:#fff}
 
 /* NAV */
 #nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--nav);display:flex;z-index:1000;box-shadow:0 -2px 10px rgba(0,0,0,.3)}
@@ -372,6 +374,8 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
     <button class="btn-sm" onclick="printDay('today')">🖨 今日印刷</button>
     <button class="btn-sm" onclick="printDay('tomorrow')">🖨 明日印刷</button>
     <button class="btn-sm" onclick="printDay('week')">🖨 週間印刷</button>
+    <button class="btn-sm" onclick="shareToLine('today')" style="background:#06c755;color:#fff">📲 今日LINE</button>
+    <button class="btn-sm" onclick="shareToLine('tomorrow')" style="background:#06c755;color:#fff">📲 明日LINE</button>
   </div>
   <div class="day-layout">
     <div class="day-main">
@@ -1882,13 +1886,116 @@ function doSearch(){
 
 // ===== PRINT =====
 function printDay(mode){
-  let title='';
-  if(mode==='today'){state.selectedDate=todayStr();title='今日の工程 '+formatDate(todayStr());}
-  else if(mode==='tomorrow'){state.selectedDate=tomorrowStr();title='明日の工程 '+formatDate(tomorrowStr());}
-  else{title='週間工程表';}
-  document.getElementById('print-title').textContent=title+' ― 西島工業';
-  if(mode!=='week')renderDayTable(state.selectedDate);
-  window.print();
+  const cname = state.companyName || COMPANY_NAMES[companyCode] || companyCode || 'N-WORK SYSTEM';
+  let dateStr='', title='', schs=[];
+  if(mode==='today'){
+    dateStr=todayStr(); title='今日の工程 '+formatDate(dateStr);
+    schs=state.schedules.filter(s=>s.date===dateStr);
+  } else if(mode==='tomorrow'){
+    dateStr=tomorrowStr(); title='明日の工程 '+formatDate(dateStr);
+    schs=state.schedules.filter(s=>s.date===dateStr);
+  } else {
+    title='週間工程表';
+    const today=new Date(todayStr()+'T00:00:00');
+    for(let i=0;i<7;i++){const d=new Date(today);d.setDate(d.getDate()+i);const ds=d.toISOString().slice(0,10);const daySchs=state.schedules.filter(s=>s.date===ds);if(daySchs.length)schs.push(...daySchs.map(s=>({...s,_dateLabel:formatDate(ds)})));}
+  }
+  const rows = schs.map(s=>{
+    const site=getSite(s.siteId);
+    const members=(s.memberIds||[]).map(id=>getMember(id)?.name||'').filter(Boolean);
+    const trucks=(s.truckIds||[]).map(id=>getTruck(id)?.name||'').filter(Boolean);
+    const dateCell = s._dateLabel ? `<td style="white-space:nowrap">${s._dateLabel}</td>` : '';
+    return `<tr>
+      ${dateCell}
+      <td>${site?.client||''}</td>
+      <td style="font-weight:700">${site?.name||''}</td>
+      <td style="font-size:11px;color:#555">${site?.address||''}</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:#1a1a2e;color:#fff;font-size:11px;font-weight:700">${s.process||''}</span></td>
+      <td style="white-space:nowrap">${s.startTime||''}${s.endTime?'～'+s.endTime:''}</td>
+      <td style="font-size:12px">${trucks.join('<br>')}</td>
+      <td style="font-size:12px">${members.join('　')}</td>
+      <td style="font-size:11px;color:#666">${s.memo||''}</td>
+    </tr>`;
+  }).join('');
+  const weekHeader = mode==='week'?'<th>日付</th>':'';
+  const printHTML=`<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><title>${title}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;font-size:13px;color:#222;background:#fff;padding:24px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:3px solid #1a1a2e}
+.header h1{font-size:20px;font-weight:900;color:#1a1a2e}
+.header .sub{font-size:12px;color:#666;margin-top:4px}
+.header .logo{font-size:11px;color:#999;text-align:right}
+table{width:100%;border-collapse:collapse;margin-top:4px}
+thead th{background:#1a1a2e;color:#fff;padding:9px 10px;text-align:left;font-size:12px;font-weight:700}
+tbody td{padding:8px 10px;border-bottom:1px solid #e8e8e8;vertical-align:middle}
+tbody tr:nth-child(even) td{background:#f7f7f7}
+tbody tr:hover td{background:#eef2ff}
+.footer{margin-top:12px;font-size:10px;color:#bbb;text-align:right}
+.print-btn{background:#1a1a2e;color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;cursor:pointer;font-family:inherit}
+@media print{.no-print{display:none!important}body{padding:12px}}
+</style></head>
+<body>
+<div class="header">
+  <div>
+    <h1>📋 ${title}</h1>
+    <div class="sub">${cname}　／　出力日時: ${new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+  </div>
+  <div class="no-print">
+    <button class="print-btn" onclick="window.print()">🖨️ 印刷する</button>
+  </div>
+</div>
+<table>
+  <thead><tr>${weekHeader}<th>元請</th><th>現場名</th><th>場所</th><th>工程</th><th>時間</th><th>トラック</th><th>メンバー</th><th>メモ</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="8" style="text-align:center;padding:24px;color:#999">工程なし</td></tr>'}</tbody>
+</table>
+<div class="footer">N-WORK SYSTEM</div>
+</body></html>`;
+  const win=window.open('','_blank','width=1000,height=700');
+  if(win){win.document.write(printHTML);win.document.close();}
+  else{toast('ポップアップをブロックされました。許可してください');}
+}
+
+function shareToLine(mode){
+  const cname = state.companyName || COMPANY_NAMES[companyCode] || companyCode || 'N-WORK SYSTEM';
+  let dateStr='', title='', schs=[];
+  if(mode==='today'){dateStr=todayStr();title='今日の工程 '+formatDate(dateStr);}
+  else{dateStr=tomorrowStr();title='明日の工程 '+formatDate(dateStr);}
+  schs=state.schedules.filter(s=>s.date===dateStr);
+  let text=`【${title}】
+${cname}
+`;
+  text+='━━━━━━━━━━━━
+';
+  if(!schs.length){text+='工程なし
+';}
+  else{
+    schs.forEach((s,i)=>{
+      const site=getSite(s.siteId);
+      const members=(s.memberIds||[]).map(id=>getMember(id)?.name||'').filter(Boolean);
+      const trucks=(s.truckIds||[]).map(id=>getTruck(id)?.name||'').filter(Boolean);
+      text+=`
+▶ ${site?.name||'現場未設定'}
+`;
+      if(site?.client) text+=`  元請: ${site.client}
+`;
+      if(site?.address) text+=`  場所: ${site.address}
+`;
+      text+=`  工程: ${s.process||'―'}　時間: ${s.startTime||''}${s.endTime?'～'+s.endTime:''}
+`;
+      if(trucks.length) text+=`  🚛 ${trucks.join('、')}
+`;
+      if(members.length) text+=`  👥 ${members.join('、')}
+`;
+      if(s.memo) text+=`  📝 ${s.memo}
+`;
+    });
+  }
+  text+='
+━━━━━━━━━━━━
+N-WORK SYSTEM';
+  window.open('https://line.me/R/msg/text/?'+encodeURIComponent(text),'_blank');
 }
 
 // ===== MODAL =====
@@ -2309,12 +2416,4 @@ function selectUser(userId){
 function logout(){
   if(confirm('ログアウトしますか？')){
     isLoggedIn = false;
-    currentUser = null;
-    currentRole = 'viewer';
-    showLoginScreen();
-  }
-}
-
-// Initialize login on page load
-initLogin();
-</script>
+    currentUser = nul
