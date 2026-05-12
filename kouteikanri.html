@@ -179,7 +179,7 @@ input,select,textarea{font-family:inherit;outline:none;background:rgba(255,255,2
 /* TRUCK VIEW */
 .truck-list{display:flex;flex-direction:column;gap:8px}
 .truck-row{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:10px}
-.truck-row input{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.truck-row input[type="text"]{flex:1;font-size:14px;font-weight:600;border:1px solid var(--border);border-radius:6px;padding:6px 10px}
 
 /* SEARCH */
 .search-box{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:12px;display:flex;gap:8px}
@@ -1787,12 +1787,29 @@ function renderMembers(){
       <input type="text" value="${m.name}" onchange="updateMemberName('${m.id}',this.value)" placeholder="名前">
       <button class="del-btn" onclick="removeMember('${m.id}')">削除</button>
     </div>`).join('')||'<div class="empty">メンバーなし</div>';
-  document.getElementById('truck-list').innerHTML=state.trucks.map(t=>`
-    <div class="truck-row">
-      <span style="font-size:20px">🚛</span>
-      <input type="text" value="${t.name}" onchange="updateTruckName('${t.id}',this.value)" placeholder="トラック名">
-      <button class="del-btn" onclick="removeTruck('${t.id}')">削除</button>
-    </div>`).join('')||'<div class="empty">トラックなし</div>';
+  document.getElementById('truck-list').innerHTML=state.trucks.map(t=>{
+    const alerts=renderTruckAlertBadges(t);
+    return `<div class="truck-row" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">🚛</span>
+        <input type="text" value="${t.name}" onchange="updateTruckName('${t.id}',this.value)" placeholder="トラック名" style="flex:1">
+        <button class="del-btn" onclick="removeTruck('${t.id}')">削除</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-left:4px">
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🔑 車検満期日 <span style="color:#ef5350">*必須</span></div>
+          <input type="date" value="${t.shaken||''}" onchange="updateTruckMaint('${t.id}','shaken',this.value)"
+            style="width:100%;font-size:13px;border:1px solid ${t.shaken?'var(--border)':'#ef5350'};border-radius:6px;padding:6px 8px;background:${t.shaken?'rgba(255,255,255,.06)':'rgba(239,83,80,.08)'}">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:3px">🛢️ 最終オイル交換日 <span style="color:var(--sub)">(任意)</span></div>
+          <input type="date" value="${t.lastOil||''}" onchange="updateTruckMaint('${t.id}','lastOil',this.value)"
+            style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:6px 8px">
+        </div>
+      </div>
+      ${alerts?`<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:4px">${alerts}</div>`:''}
+    </div>`;
+  }).join('')||'<div class="empty">トラックなし</div>';
 }
 function addMember(){
   state.members.push({id:uid(),name:'新しいメンバー',createdAt:Date.now()});
@@ -1808,8 +1825,15 @@ function removeMember(id){
   saveState();renderMembers();toast('削除しました');
 }
 function addTruck(){
-  state.trucks.push({id:uid(),name:'新しいトラック',createdAt:Date.now()});
-  saveState();renderMembers();
+  const name = prompt('トラック名を入力してください');
+  if(!name || !name.trim()) return;
+  const shaken = prompt('車検満期日を入力してください (例: 2025-12-31)\n※必須項目です');
+  if(!shaken || !shaken.trim()){ toast('車検満期日は必須です'); return; }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(shaken.trim())){ toast('日付は YYYY-MM-DD 形式で入力してください'); return; }
+  const lastOil = prompt('最終オイル交換日を入力してください (例: 2025-06-01)\n※任意 — 不要な場合はキャンセルまたは空欄でOK') || '';
+  state.trucks.push({id:uid(), name:name.trim(), shaken:shaken.trim(), lastOil:lastOil.trim(), createdAt:Date.now()});
+  saveState(); renderMembers();
+  toast('トラックを追加しました');
 }
 function updateTruckName(id,name){
   const t=getTruck(id);if(t){t.name=name.trim();saveState();}
